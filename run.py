@@ -105,8 +105,8 @@ if __name__ == "__main__":
 
     T = Checkmate_Theory()
 
-    # solution = T.solve()
-    # print(solution)
+    solution = T.solve()
+    print(solution)
     # print("\nSatisfiable: %s" % T.is_satisfiable())
     # print("# Solutions: %d" % T.count_solutions())
     # print("   Solution: %s" % T.solve())

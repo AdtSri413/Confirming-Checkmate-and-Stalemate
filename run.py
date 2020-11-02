@@ -100,10 +100,10 @@ def singleKing():
       for add1 in range(0,BOARD_SIZE):
         for add2 in range(0,BOARD_SIZE):
           # need to add the constraints for every square other than the (i,j) square
-          if (not ((add1 == i) and (add2 == j))):
+          if (not ( ((i + add1) % BOARD_SIZE == i) and ((j + add2) % BOARD_SIZE == j))):
             # We are creating a series of 'and's chained together. the chain will have the value for each
             # and every square other than the square
-            allOtherSpaces &= ~BK_Space_Occupied[(i+add1)%BOARD_SIZE][(j+add2)%BOARD_SIZE]
+            allOtherSpaces &= ~BK_Space_Occupied[(i + add1) % BOARD_SIZE][(j + add2) % BOARD_SIZE]
           
       newConstraint =  ~BK_Space_Occupied[i][j] | (allOtherSpaces)
       constraints.append(newConstraint)

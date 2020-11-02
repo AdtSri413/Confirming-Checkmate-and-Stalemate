@@ -130,4 +130,6 @@ dmypy.json
 
 poetry.lock
 
-test
+test/
+
+.vscode/

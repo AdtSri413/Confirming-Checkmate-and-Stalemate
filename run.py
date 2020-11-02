@@ -63,6 +63,9 @@ example_board = [["BK",0,0,0,0,0,0,0],
 # The positions of pieces. This may be a question to ask for feedback, if we can set
 # where the king (or other pieces) can move here, but I *think* that would go against
 # the idea of using logic, not python programming, to solve it
+
+# Maybe based on the location of the king setting the movement ones to false only in the situation it would be moving
+# off the board. The other ones leave to figure out later. Still, maybe the TA's want us to do that with constraints(?)
 def set_initial_config(board):
   #board parser starts here
   f = true
@@ -106,7 +109,7 @@ def singleKing():
       constraints.append(newConstraint)
 
       #Slowely build up the last constraint needed, to make sure there is at least one black king
-      oneKing = oneKing | BK_Space_Occupied[i][j]
+      oneKing |= BK_Space_Occupied[i][j]
   # add the constraint of eensuring there is at least one king
   constraints.append(oneKing)
   return constraints

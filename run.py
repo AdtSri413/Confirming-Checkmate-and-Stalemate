@@ -72,14 +72,12 @@ def parse_board(board):
           elif board[i][j]=="WQ":
               f &= WQ_Space_Occupied[i][j]
               #adds threat squares to each row and column the queen occupies
-              for k in range(BOARD_SIZE):
+              for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
                   for l in range(BOARD_SIZE):
                       f &= White_Potential_Moves[i][k]
                       f &= White_Potential_Moves[l][j]
-                      if (k-i = l-j):
+                      if (k-i == l-j | k-i == (0-(l-j)) ):
                           f &= White_Potential_Moves[k][l]
-
-
   return f
 
 #parse the output from the model into a board array

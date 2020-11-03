@@ -20,8 +20,9 @@ BK_Potential_Moves = []
 
 #White queen stuff
 WQ_Space_Occupied = []
-White_Potential_Moves = []
 
+#White Potential Moves
+White_Potential_Moves = []
 
 # Creatting the massive arrays of initialized variables needed for the movements/positions of peices.
 
@@ -30,17 +31,11 @@ White_Potential_Moves = []
 for i in range(BOARD_SIZE):
     BK_Space_Occupied.append([])
     WQ_Space_Occupied.append([])
-
-    BK_Potential_Moves.append([])
     White_Potential_Moves.append([])
-
     for j in range(BOARD_SIZE):
         BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
         WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
-
-        BK_Potential_Moves[i].append(Var(f'BK_Potential_Moves_{i},{j}'))
-        White_Potential_Moves[i].append(Var(f'WQ_Potential_Moves_{i},{j}'))
-
+        White_Potential_Moves[i].append(Var(f'BK_Occupied_{i},{j}')
 
 # not done with a loop so we can have the handy comments saying what direction each one is for
 BK_Moves = []
@@ -57,7 +52,7 @@ for i in range(1,10):
 # BK_Move_9 = Var('BK_Move_9') # down-right
 BK_No_Moves = Var('Bk_No_Moves') # true if the black king has no moves (IE everything above is false)
 
-# 
+#
 Check = Var('Check')
 
 # the 2 ending configuations. Mutually exclusive, and 1 must be true for the model to exist.
@@ -88,10 +83,16 @@ def parse_board(board):
       for j in range(BOARD_SIZE):
           if board[i][j]=="BK":
               f &= BK_Space_Occupied[i][j]
-              
+
           elif board[i][j]=="WQ":
               f &= WQ_Space_Occupied[i][j]
-
+              #adds threat squares to each row and column the queen occupies
+              for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
+                  for l in range(BOARD_SIZE):
+                      f &= White_Potential_Moves[i][k]
+                      f &= White_Potential_Moves[l][j]
+                      if (k-i == l-j | k-i == (0-(l-j)) ):
+                          f &= White_Potential_Moves[k][l]
   return f
 
 #parse the output from the model into a board array
@@ -105,7 +106,7 @@ def parse_solution(solution):
       board[int(key[-3])][int(key[-1])] = "BK"
 
   return board
-  
+
 
 def draw_board(board):
   #set any remaining spaces to 2 spaces as empty squares
@@ -144,7 +145,7 @@ def singleKing():
             # We are creating a series of 'and's chained together. the chain will have the value for each
             # and every square other than the square
             allOtherSpaces &= ~BK_Space_Occupied[(i + add1) % BOARD_SIZE][(j + add2) % BOARD_SIZE]
-          
+
       newConstraint =  ~BK_Space_Occupied[i][j] | (allOtherSpaces)
       constraints.append(newConstraint)
 

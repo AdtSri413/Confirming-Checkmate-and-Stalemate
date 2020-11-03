@@ -66,7 +66,7 @@ example_board = [["BK",0,0,0,0,0,0,0],
 
 # Maybe based on the location of the king setting the movement ones to false only in the situation it would be moving
 # off the board. The other ones leave to figure out later. Still, maybe the TA's want us to do that with constraints(?)
-def set_initial_config(board):
+def parse_board(board):
   #board parser starts here
   f = true
   for i in range(BOARD_SIZE):
@@ -82,7 +82,7 @@ def set_initial_config(board):
 
 # little thing that takes an if and only if statement, and returns it in negation normal form.
 # Thanks to the professor for this snippet
-def iif(left, right):
+def iff(left, right):
     return (left.negate() | right) & (right.negate() | left)
 
 
@@ -129,17 +129,17 @@ def Theory():
   E = addConstraints(E, singleKing())
 
   # Can't be in both checkmate and stalemate
-  E.add_constraint(iif(Checkmate, ~Stalemate))
+  E.add_constraint(iff(Checkmate, ~Stalemate))
 
-  # iif BK_No_Moves (ie the king has no valid moves), the game is either in checkmate or stalemate. pretty obvious
+  # iff BK_No_Moves (ie the king has no valid moves), the game is either in checkmate or stalemate. pretty obvious
   # this will change if we add other pieces to the black side that are able to move, where we will also have to check
   # if the other peices are unable to move
-  E.add_constraint(iif(BK_No_Moves, Checkmate | Stalemate))
+  E.add_constraint(iff(BK_No_Moves, Checkmate | Stalemate))
 
   # if the king is in check, and doesn't have moves, then it is in checkmate. This will narrow the models down from the
   # previous constraint, which only simplified it to either checkmate or stalemate. now we know which one.
   # might be a more efficient way to do this, but this makes more sense in my head, so it's the way I'm doing it.
-  E.add_constraint(iif(Check & BK_No_Moves, Checkmate))
+  E.add_constraint(iff(Check & BK_No_Moves, Checkmate))
 
   return E
 

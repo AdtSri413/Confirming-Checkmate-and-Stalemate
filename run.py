@@ -14,6 +14,9 @@ from lib204 import Encoding
 
 BOARD_SIZE = 8
 
+# Space occupied in general
+Space_Occupied = []
+
 #Black king stuff
 BK_Space_Occupied = []
 BK_Potential_Moves = []
@@ -31,11 +34,13 @@ White_Potential_Moves = []
 for i in range(BOARD_SIZE):
     BK_Space_Occupied.append([])
     WQ_Space_Occupied.append([])
+    Space_Occupied.append([])
     White_Potential_Moves.append([])
     for j in range(BOARD_SIZE):
         BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
         WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
-        White_Potential_Moves[i].append(Var(f'BK_Occupied_{i},{j}'))
+        Space_Occupied[i].append(Var(f'Space_Occupied_{i},{j}'))
+        White_Potential_Moves[i].append(Var(f'White_Potential_Moves{i},{j}'))
 
 # not done with a loop so we can have the handy comments saying what direction each one is for
 BK_Moves = []
@@ -99,11 +104,14 @@ def parse_solution(solution):
   board = [
     [0 for i in range(BOARD_SIZE)] for i in range(BOARD_SIZE)
   ]
+  if solution == None:
+    return board
   #replace the 0's with pieces as needed
   for key, value in solution.items():
     if (key[:-3] == 'BK_Occupied_') & value:
       board[int(key[-3])][int(key[-1])] = "BK"
-
+    if (key[:-3] == 'WQ_Occupied_') & value:
+      board[int(key[-3])][int(key[-1])] = "WQ"
   return board
 
 def draw_board(board):
@@ -123,6 +131,25 @@ def draw_board(board):
 # Thanks to the professor for this snippet
 def iff(left, right):
     return (left.negate() | right) & (right.negate() | left)
+
+#set spaces_occupied for a space as true if there is a piece on it
+def spaceOccupied():
+  constraints = []
+  for i in range(BOARD_SIZE):
+    for j in range(BOARD_SIZE):
+      #BK_Space_Occupied[i][j] -> Space_Occupied[i][j]
+      constraints.append(~BK_Space_Occupied[i][j] | Space_Occupied[i][j])
+      #WQ_Space_Occupied[i][j] -> Space_Occupied[i][j]
+      constraints.append(~WQ_Space_Occupied[i][j] | Space_Occupied[i][j])
+
+      #add more constraints for occupying spaces as more white pieces are added. 
+
+      # Also here we will make sure there is only 1 piece per square.
+      # (BK_Space_Occupied[i][j] -> ~WQ_Space_Occupied[i][j]) & (WQ_Space_Occupied[i][j] -> ~BK_Space_Occupied[i][j])
+      constraints.append( (~BK_Space_Occupied[i][j] | ~WQ_Space_Occupied[i][j]) & (~WQ_Space_Occupied[i][j] | ~BK_Space_Occupied[i][j]) )
+
+      #add more constraiints for pieces on pieces as pieces are added.
+  return constraints
 
 # function for generating a list of constraints that is everything we need to determine if there are multiple kings
 # theoretically without this a person could create a board configuration with multiple black kings on it, which is not
@@ -180,6 +207,8 @@ def King_Edge_Potential_Moves():
       if (j == BOARD_SIZE) & (i == BOARD_SIZE):
         # can't move down/right
         constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[7])
+  
+  return constraints
 
 # little function to add multiple constraints from a list
 def addConstraints(encoding, constraints):
@@ -191,8 +220,11 @@ def addConstraints(encoding, constraints):
 def Theory():
   E = Encoding()
 
-  # Reminder: the line below is temp commented, to reduce output when printing
   E = addConstraints(E, singleKing())
+
+  E = addConstraints(E, King_Edge_Potential_Moves())
+
+  E = addConstraints(E, spaceOccupied())
 
   # Can't be in both checkmate and stalemate
   E.add_constraint(iff(Checkmate, ~Stalemate))
@@ -213,11 +245,11 @@ if __name__ == "__main__":
     T = Theory()
 
     #If we want to add an initial board setting you need:
-    # T.add_constraint(set_inital_config(board))
-
+    #T.add_constraint(parse_board(example_board))
+    
     solution = T.solve()
     #print(solution)
-    parse_solution(solution)
+    print(draw_board(parse_solution(solution)))
 
     # print("\nSatisfiable: %s" % T.is_satisfiable())
     # print("# Solutions: %d" % T.count_solutions())

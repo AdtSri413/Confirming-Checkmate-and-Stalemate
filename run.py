@@ -97,6 +97,8 @@ def parse_board(board):
                       f &= White_Potential_Moves[l][j]
                       if (k-i == l-j | k-i == (0-(l-j)) ):
                           f &= White_Potential_Moves[k][l]
+          else:
+            f &= ~Space_Occupied[i][j]
   return f
 
 #parse the output from the model into a board array
@@ -145,8 +147,9 @@ def spaceOccupied():
       #add more constraints for occupying spaces as more white pieces are added. 
 
       # Also here we will make sure there is only 1 piece per square.
-      # (BK_Space_Occupied[i][j] -> ~WQ_Space_Occupied[i][j]) & (WQ_Space_Occupied[i][j] -> ~BK_Space_Occupied[i][j])
-      constraints.append( (~BK_Space_Occupied[i][j] | ~WQ_Space_Occupied[i][j]) & (~WQ_Space_Occupied[i][j] | ~BK_Space_Occupied[i][j]) )
+      # (BK_Space_Occupied[i][j] -> ~WQ_Space_Occupied[i][j]) as well as (WQ_Space_Occupied[i][j] -> ~BK_Space_Occupied[i][j])
+      constraints.append( (~BK_Space_Occupied[i][j] | ~WQ_Space_Occupied[i][j]) )
+      constraints.append( (~WQ_Space_Occupied[i][j] | ~BK_Space_Occupied[i][j]) )
 
       #add more constraiints for pieces on pieces as pieces are added.
   return constraints
@@ -225,7 +228,7 @@ def Theory():
   E = addConstraints(E, King_Edge_Potential_Moves())
 
   #this line currently does not work properly. That is known. That's why it's commented
-  #E = addConstraints(E, spaceOccupied())
+  E = addConstraints(E, spaceOccupied())
 
   # Can't be in both checkmate and stalemate
   E.add_constraint(iff(Checkmate, ~Stalemate))

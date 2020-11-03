@@ -52,7 +52,6 @@ for i in range(1,10):
 # BK_Move_9 = Var('BK_Move_9') # down-right
 BK_No_Moves = Var('Bk_No_Moves') # true if the black king has no moves (IE everything above is false)
 
-#
 Check = Var('Check')
 
 # the 2 ending configuations. Mutually exclusive, and 1 must be true for the model to exist.
@@ -107,7 +106,6 @@ def parse_solution(solution):
 
   return board
 
-
 def draw_board(board):
   #set any remaining spaces to 2 spaces as empty squares
   for i in range(BOARD_SIZE):
@@ -125,7 +123,6 @@ def draw_board(board):
 # Thanks to the professor for this snippet
 def iff(left, right):
     return (left.negate() | right) & (right.negate() | left)
-
 
 # function for generating a list of constraints that is everything we need to determine if there are multiple kings
 # theoretically without this a person could create a board configuration with multiple black kings on it, which is not
@@ -184,7 +181,6 @@ def King_Edge_Potential_Moves():
         # can't move down/right
         constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[7])
 
-
 # little function to add multiple constraints from a list
 def addConstraints(encoding, constraints):
   for constraint in constraints:
@@ -212,9 +208,6 @@ def Theory():
   E.add_constraint(iff(Check & BK_No_Moves, Checkmate))
 
   return E
-
-
-
 
 if __name__ == "__main__":
     T = Theory()

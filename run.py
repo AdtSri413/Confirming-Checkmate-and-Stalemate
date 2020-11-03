@@ -9,8 +9,9 @@ BK_Potential_Moves = []
 
 #White queen stuff
 WQ_Space_Occupied = []
-WQ_Potential_Moves = []
 
+#White Potential Moves
+White_Potential_Moves = []
 
 # Creatting the massive arrays of initialized variables needed for the movements/positions of peices.
 
@@ -19,17 +20,11 @@ WQ_Potential_Moves = []
 for i in range(BOARD_SIZE):
     BK_Space_Occupied.append([])
     WQ_Space_Occupied.append([])
-
-    BK_Potential_Moves.append([])
-    WQ_Potential_Moves.append([])
-
+    White_Potential_Moves.append([])
     for j in range(BOARD_SIZE):
         BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
         WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
-
-        BK_Potential_Moves[i].append(Var(f'BK_Potential_Moves_{i},{j}'))
-        WQ_Potential_Moves[i].append(Var(f'WQ_Potential_Moves_{i},{j}'))
-
+        White_Potential_Moves[i].append(Var(f'BK_Occupied_{i},{j}')
 
 # not done with a loop so we can have the handy comments saying what direction each one is for
 BK_Move_1 = Var('BK_Move_1') # down-left
@@ -42,7 +37,7 @@ BK_Move_8 = Var('BK_Move_8') # up
 BK_Move_9 = Var('BK_Move_9') # up-right
 BK_No_Moves = Var('Bk_No_Moves') # true if the black king has no moves (IE everything above is false)
 
-# 
+#
 Check = Var('Check')
 
 # the 2 ending configuations. Mutually exclusive, and 1 must be true for the model to exist.
@@ -73,9 +68,17 @@ def parse_board(board):
       for j in range(BOARD_SIZE):
           if board[i][j]=="BK":
               f &= BK_Space_Occupied[i][j]
-              
+
           elif board[i][j]=="WQ":
               f &= WQ_Space_Occupied[i][j]
+              #adds threat squares to each row and column the queen occupies
+              for k in range(BOARD_SIZE):
+                  for l in range(BOARD_SIZE):
+                      f &= White_Potential_Moves[i][k]
+                      f &= White_Potential_Moves[l][j]
+                      if (k-i = l-j):
+                          f &= White_Potential_Moves[k][l]
+
 
   return f
 
@@ -90,7 +93,7 @@ def parse_solution(solution):
       board[int(key[-3])][int(key[-1])] = "BK"
 
   return board
-  
+
 
 def draw_board(board):
   #set any remaining spaces to 2 spaces as empty squares
@@ -129,7 +132,7 @@ def singleKing():
             # We are creating a series of 'and's chained together. the chain will have the value for each
             # and every square other than the square
             allOtherSpaces &= ~BK_Space_Occupied[(i + add1) % BOARD_SIZE][(j + add2) % BOARD_SIZE]
-          
+
       newConstraint =  ~BK_Space_Occupied[i][j] | (allOtherSpaces)
       constraints.append(newConstraint)
 
@@ -144,34 +147,6 @@ def king_on_edge():
   for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
       if (i == 0) | (j == 0) | (i == 8) | (j == 8):
-        
-
-
-
-
-for i in range(8):
-    for j in range(8):
-        if example_board[i][j]=="BK":
-            BK_Space_Occupied[i][j] = True
-            if j<7:
-                BK_Potential_Moves[i][j+1] = True
-            if j>0: 
-                BK_Potential_Moves[i][j-1] = True
-            if i<7:
-                BK_Potential_Moves[i-1][j] = True
-            if i>0:
-                BK_Potential_Moves[i+1][j] = True #don't fucking judge me -Josh
-            if (j<7 & i<7):
-                BK_Potential_Moves[i-1][j+1] = True
-            if (j>0 & i<7):
-                BK_Potential_Moves[i+1][j+1] = True
-            if (j<7 & i>0):
-                BK_Potential_Moves[i-1][j-1] = True
-            if (j>0 & i>0):
-                BK_Potential_Moves[i+1][j-1] = True
-            
-        elif example_board[i][j]=="WQ":
-            WQ_Space_Occupied[i][j] = True
 
 # little function to add multiple constraints from a list
 def addConstraints(encoding, constraints):

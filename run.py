@@ -1,3 +1,14 @@
+'''
+As a reference:
+
+when iteration through the board, the first variable (usually i) refers to the row it is in.
+Ex. i = 0 means you are looking somewhere across the TOP of the chessboard.
+
+The second variable (usually j) refers to the column it is in.
+
+If i = 0 and j = 1, then the piece is at the top of the board, and second square from the left.
+
+'''
 from nnf import Var, true
 from lib204 import Encoding
 
@@ -32,14 +43,18 @@ for i in range(BOARD_SIZE):
 
 
 # not done with a loop so we can have the handy comments saying what direction each one is for
-BK_Move_1 = Var('BK_Move_1') # down-left
-BK_Move_2 = Var('BK_Move_2') # down
-BK_Move_3 = Var('BK_Move_3') # down-right
-BK_Move_4 = Var('BK_Move_4') # left
-BK_Move_6 = Var('BK_Move_6') # right
-BK_Move_7 = Var('BK_Move_7') # up-left
-BK_Move_8 = Var('BK_Move_8') # up
-BK_Move_9 = Var('BK_Move_9') # up-right
+BK_Moves = []
+for i in range(1,10):
+  if (i != 5) & (i != 0):
+    BK_Moves.append(Var(f'BK_Move_{i}'))
+# BK_Move_1 = Var('BK_Move_1') # up-left
+# BK_Move_2 = Var('BK_Move_2') # up
+# BK_Move_3 = Var('BK_Move_3') # up-right
+# BK_Move_4 = Var('BK_Move_4') # left
+# BK_Move_6 = Var('BK_Move_6') # right
+# BK_Move_7 = Var('BK_Move_7') # down-left
+# BK_Move_8 = Var('BK_Move_8') # down
+# BK_Move_9 = Var('BK_Move_9') # down-right
 BK_No_Moves = Var('Bk_No_Moves') # true if the black king has no moves (IE everything above is false)
 
 # 
@@ -139,39 +154,35 @@ def singleKing():
   constraints.append(oneKing)
   return constraints
 
-def king_on_edge():
+def King_Edge_Potential_Moves():
   constraints = []
   for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
-      if (i == 0) | (j == 0) | (i == 8) | (j == 8):
-        
+      if (i == 0):
+        #if i=0, and a king occupies that space, then it cannot move up.
+        constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[1])
+      if (i == BOARD_SIZE):
+        #if i= the size of the board, and a king occupies that space, then it cannot move down.
+        constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[6])
+      if (j == 0):
+        # if j=0, then a king can't move left
+        constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[3])
+      if (j == BOARD_SIZE):
+        # if j= the size of the board, then a king can't move right
+        constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[4])
+      if (j == 0) & (i == 0):
+        # can't move up/left
+        constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[0])
+      if (j == 0) & (i == BOARD_SIZE):
+        # can't move down/left
+        constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[5])
+      if (j == BOARD_SIZE) & (i == 0):
+        # can't move up/right
+        constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[2])
+      if (j == BOARD_SIZE) & (i == BOARD_SIZE):
+        # can't move down/right
+        constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[7])
 
-
-
-
-for i in range(8):
-    for j in range(8):
-        if example_board[i][j]=="BK":
-            BK_Space_Occupied[i][j] = True
-            if j<7:
-                BK_Potential_Moves[i][j+1] = True
-            if j>0: 
-                BK_Potential_Moves[i][j-1] = True
-            if i<7:
-                BK_Potential_Moves[i-1][j] = True
-            if i>0:
-                BK_Potential_Moves[i+1][j] = True #don't fucking judge me -Josh
-            if (j<7 & i<7):
-                BK_Potential_Moves[i-1][j+1] = True
-            if (j>0 & i<7):
-                BK_Potential_Moves[i+1][j+1] = True
-            if (j<7 & i>0):
-                BK_Potential_Moves[i-1][j-1] = True
-            if (j>0 & i>0):
-                BK_Potential_Moves[i+1][j-1] = True
-            
-        elif example_board[i][j]=="WQ":
-            WQ_Space_Occupied[i][j] = True
 
 # little function to add multiple constraints from a list
 def addConstraints(encoding, constraints):

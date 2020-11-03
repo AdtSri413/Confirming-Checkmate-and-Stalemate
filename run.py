@@ -139,6 +139,39 @@ def singleKing():
   constraints.append(oneKing)
   return constraints
 
+def king_on_edge():
+  constraints = []
+  for i in range(BOARD_SIZE):
+    for j in range(BOARD_SIZE):
+      if (i == 0) | (j == 0) | (i == 8) | (j == 8):
+        
+
+
+
+
+for i in range(8):
+    for j in range(8):
+        if example_board[i][j]=="BK":
+            BK_Space_Occupied[i][j] = True
+            if j<7:
+                BK_Potential_Moves[i][j+1] = True
+            if j>0: 
+                BK_Potential_Moves[i][j-1] = True
+            if i<7:
+                BK_Potential_Moves[i-1][j] = True
+            if i>0:
+                BK_Potential_Moves[i+1][j] = True #don't fucking judge me -Josh
+            if (j<7 & i<7):
+                BK_Potential_Moves[i-1][j+1] = True
+            if (j>0 & i<7):
+                BK_Potential_Moves[i+1][j+1] = True
+            if (j<7 & i>0):
+                BK_Potential_Moves[i-1][j-1] = True
+            if (j>0 & i>0):
+                BK_Potential_Moves[i+1][j-1] = True
+            
+        elif example_board[i][j]=="WQ":
+            WQ_Space_Occupied[i][j] = True
 
 # little function to add multiple constraints from a list
 def addConstraints(encoding, constraints):

@@ -79,6 +79,31 @@ def parse_board(board):
 
   return f
 
+#parse the output from the model into a board array
+def parse_solution(solution):
+  board = [
+    [0 for i in range(BOARD_SIZE)] for i in range(BOARD_SIZE)
+  ]
+  #replace the 0's with pieces as needed
+  for key, value in solution.items():
+    if (key[:-3] == 'BK_Occupied_') & value:
+      board[int(key[-3])][int(key[-1])] = "BK"
+
+  return board
+  
+
+def draw_board(board):
+  #set any remaining spaces to 2 spaces as empty squares
+  for i in range(BOARD_SIZE):
+    for j in range(BOARD_SIZE):
+      if board[i][j] == 0:
+        board[i][j] = "  "
+
+  string = "-"*BOARD_SIZE*3 + "--" + "\n"
+  for i in range(BOARD_SIZE):
+    string += "|" + "|".join(board[i]) + "|\n"
+    string += "-"*BOARD_SIZE*3 + "--" + "\n"
+  return string
 
 # little thing that takes an if and only if statement, and returns it in negation normal form.
 # Thanks to the professor for this snippet
@@ -153,7 +178,8 @@ if __name__ == "__main__":
     # T.add_constraint(set_inital_config(board))
 
     solution = T.solve()
-    print(solution)
+    #print(solution)
+    parse_solution(solution)
 
     # print("\nSatisfiable: %s" % T.is_satisfiable())
     # print("# Solutions: %d" % T.count_solutions())

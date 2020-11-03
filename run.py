@@ -35,7 +35,7 @@ for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
         BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
         WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
-        White_Potential_Moves[i].append(Var(f'BK_Occupied_{i},{j}')
+        White_Potential_Moves[i].append(Var(f'BK_Occupied_{i},{j}'))
 
 # not done with a loop so we can have the handy comments saying what direction each one is for
 BK_Moves = []

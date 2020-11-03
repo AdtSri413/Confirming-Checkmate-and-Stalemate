@@ -224,7 +224,8 @@ def Theory():
 
   E = addConstraints(E, King_Edge_Potential_Moves())
 
-  E = addConstraints(E, spaceOccupied())
+  #this line currently does not work properly. That is known. That's why it's commented
+  #E = addConstraints(E, spaceOccupied())
 
   # Can't be in both checkmate and stalemate
   E.add_constraint(iff(Checkmate, ~Stalemate))

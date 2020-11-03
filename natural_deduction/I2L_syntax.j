@@ -27,10 +27,11 @@
 CLASS VARIABLE  x y z
       		u v w
                 i j k
-CLASS FORMULA   BijK BijQ BijP
-                WijK WijQ WijP
-                Mij Tij C 
-                A B E F P Q R S T
+CLASS FORMULA   BK1 BK2 BK3 BK4 BK6 BK7 BK8 BK9
+                BKNoMoves
+                CM 
+                SM
+                A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
 CLASS BAG FORMULA Γ
 
 CONSTANT ⊥ ⊤

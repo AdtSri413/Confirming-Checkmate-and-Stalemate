@@ -1,2 +1,53 @@
+﻿CONJECTUREPANEL Proofs
+PROOF "BKNoMoves→(CM∨SM), (CM∨SM)→BKNoMoves, (C∧BKNoMoves)→CM, CM→(C∧BKNoMoves), BKNoMoves∧¬C ⊢ SM"
+INFER BKNoMoves→(CM∨SM),
+     (CM∨SM)→BKNoMoves,
+     (C∧BKNoMoves)→CM,
+     CM→(C∧BKNoMoves),
+     BKNoMoves∧¬C 
+     ⊢ SM 
+FORMULAE
+0 SM,
+1 ⊥,
+2 ¬C,
+3 C,
+4 C∧BKNoMoves,
+5 BKNoMoves,
+6 CM,
+7 CM→C∧BKNoMoves,
+8 CM∨SM,
+9 BKNoMoves→CM∨SM,
+10 BKNoMoves∧¬C,
+11 CM→(C∧BKNoMoves),
+12 CM→¬SM,
+13 (C∧BKNoMoves)→CM,
+14 (CM∨SM)→BKNoMoves,
+15 ¬SM→CM,
+16 BKNoMoves→(CM∨SM)
+IS
+SEQ (cut[B,C\2,0]) (LAYOUT "∧ elim" (0) ("∧ elim(R)"[A,B\5,2]) (hyp[A\10])) (cut[B,C\5,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\5,2]) (hyp[A\10])) (cut[B,C\8,0]) ("→ elim"[A,B\5,8]) (hyp[A\9]) (hyp[A\5]) ("∨ elim"[A,B,C\6,0,0]) (hyp[A\8]) (cut[B,C\4,0]) ("→ elim"[A,B\6,4]) (hyp[A\7]) (hyp[A\6]) (cut[B,C\3,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\3,5]) (hyp[A\4])) (cut[B,C\1,0]) ("¬ elim"[B\3]) (hyp[A\3]) (hyp[A\2]) ("contra (constructive)"[B\0]) (hyp[A\1]) (hyp[A\0])
+END
 CONJECTUREPANEL Proofs
+PROOF "BKNoMoves→(CM∨SM), (CM∨SM)→BKNoMoves, (C∧BKNoMoves)→CM, CM→(C∧BKNoMoves), BKNoMoves∧C ⊢ CM"
+INFER BKNoMoves→(CM∨SM),
+     (CM∨SM)→BKNoMoves,
+     (C∧BKNoMoves)→CM,
+     CM→(C∧BKNoMoves),
+     BKNoMoves∧C 
+     ⊢ CM 
+FORMULAE
+0 CM,
+1 C∧BKNoMoves,
+2 C∧BKNoMoves→CM,
+3 BKNoMoves,
+4 C,
+5 BKNoMoves∧C,
+6 CM→(C∧BKNoMoves),
+7 CM→¬SM,
+8 (C∧BKNoMoves)→CM,
+9 (CM∨SM)→BKNoMoves,
+10 ¬SM→CM,
+11 BKNoMoves→(CM∨SM)
+IS
+SEQ (cut[B,C\4,0]) (LAYOUT "∧ elim" (0) ("∧ elim(R)"[A,B\3,4]) (hyp[A\5])) (cut[B,C\3,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\3,4]) (hyp[A\5])) (cut[B,C\1,0]) ("∧ intro"[A,B\4,3]) (hyp[A\4]) (hyp[A\3]) (cut[B,C\0,0]) ("→ elim"[A,B\1,0]) (hyp[A\2]) (hyp[A\1]) (hyp[A\0])
 END

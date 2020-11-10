@@ -24,6 +24,9 @@ BK_Potential_Moves = []
 #White queen stuff
 WQ_Space_Occupied = []
 
+#White pawn stuff
+WP_Space_Occupied = []
+
 #White Potential Moves
 White_Potential_Moves = []
 
@@ -34,11 +37,13 @@ White_Potential_Moves = []
 for i in range(BOARD_SIZE):
     BK_Space_Occupied.append([])
     WQ_Space_Occupied.append([])
+    WP_Space_Occupied.append([])
     Space_Occupied.append([])
     White_Potential_Moves.append([])
     for j in range(BOARD_SIZE):
         BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
         WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
+        WP_Space_Occupied[i].append(Var(f'WP_Occupied_{i},{j}'))
         Space_Occupied[i].append(Var(f'Space_Occupied_{i},{j}'))
         White_Potential_Moves[i].append(Var(f'White_Potential_Moves{i},{j}'))
 
@@ -69,7 +74,7 @@ example_board = [["BK",0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
+[0,0,"WP",0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,"WQ"]]
 
@@ -84,21 +89,28 @@ def parse_board(board):
   #board parser starts here
   f = true
   for i in range(BOARD_SIZE):
-      for j in range(BOARD_SIZE):
-          if board[i][j]=="BK":
-              f &= BK_Space_Occupied[i][j]
+    for j in range(BOARD_SIZE):
+      if board[i][j]=="BK":
+        f &= BK_Space_Occupied[i][j]
 
-          elif board[i][j]=="WQ":
-              f &= WQ_Space_Occupied[i][j]
-              #adds threat squares to each row and column the queen occupies
-              for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
-                  for l in range(BOARD_SIZE):
-                      f &= White_Potential_Moves[i][k]
-                      f &= White_Potential_Moves[l][j]
-                      if (k-i == l-j | k-i == (0-(l-j)) ):
-                          f &= White_Potential_Moves[k][l]
-          else:
-            f &= ~Space_Occupied[i][j]
+      elif board[i][j]=="WQ":
+        f &= WQ_Space_Occupied[i][j]
+        #adds threat squares to each row and column the queen occupies
+        for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
+          for l in range(BOARD_SIZE):
+            f &= White_Potential_Moves[i][k]
+            f &= White_Potential_Moves[l][j]
+            if (k-i == l-j | k-i == (0-(l-j)) ):
+              f &= White_Potential_Moves[k][l]
+
+      elif board[i][j]=="WP":
+        f &= WP_Space_Occupied[i][j]
+        White_Potential_Moves[i-1][j-1] = True
+        White_Potential_Moves[i+1][j-1] = True
+
+      else:
+        f &= ~Space_Occupied[i][j]
+
   return f
 
 #parse the output from the model into a board array
@@ -143,13 +155,13 @@ def spaceOccupied():
       constraints.append(~BK_Space_Occupied[i][j] | Space_Occupied[i][j])
       #WQ_Space_Occupied[i][j] -> Space_Occupied[i][j]
       constraints.append(~WQ_Space_Occupied[i][j] | Space_Occupied[i][j])
+      constraints.append(~WP_Space_Occupied[i][j] | Space_Occupied[i][j])
 
       #add more constraints for occupying spaces as more white pieces are added. 
 
       # Also here we will make sure there is only 1 piece per square.
       # (BK_Space_Occupied[i][j] -> ~WQ_Space_Occupied[i][j]) as well as (WQ_Space_Occupied[i][j] -> ~BK_Space_Occupied[i][j])
-      constraints.append( (~BK_Space_Occupied[i][j] | ~WQ_Space_Occupied[i][j]) )
-      constraints.append( (~WQ_Space_Occupied[i][j] | ~BK_Space_Occupied[i][j]) )
+      constraints.append( (~BK_Space_Occupied[i][j] | ~WQ_Space_Occupied[i][j] | ~WP_Space_Occupied[i][j] ) )
 
       #add more constraiints for pieces on pieces as pieces are added.
   return constraints

@@ -385,7 +385,7 @@ def Theory():
 
   E = addConstraints(E, spaceOccupied())
 
-  #E.add_constraint(White_Potential_Moves(i, j, board[i][j]))
+  #E.add_constraint(White_Potential_Movement(i, j, board[i][j]))
 
   E = addConstraints(E, limitNumberPieces([WQ_Row, WQ_Column], WQ_Space_Occupied))
 

@@ -35,17 +35,17 @@ White_Potential_Moves = []
 # IDEA: instead of stuff like WQ_Potential_Moves, maybe just make one set of variables called "White_Potential_Moves". Because it
 # Really doesn't matter which piece can move where, just that a specific square is 'in danger' by some piece.
 for i in range(BOARD_SIZE):
-    BK_Space_Occupied.append([])
-    WQ_Space_Occupied.append([])
-    WP_Space_Occupied.append([])
-    Space_Occupied.append([])
-    White_Potential_Moves.append([])
-    for j in range(BOARD_SIZE):
-        BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
-        WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
-        WP_Space_Occupied[i].append(Var(f'WP_Occupied_{i},{j}'))
-        Space_Occupied[i].append(Var(f'Space_Occupied_{i},{j}'))
-        White_Potential_Moves[i].append(Var(f'White_Potential_Moves{i},{j}'))
+  BK_Space_Occupied.append([])
+  WQ_Space_Occupied.append([])
+  WP_Space_Occupied.append([])
+  Space_Occupied.append([])
+  White_Potential_Moves.append([])
+  for j in range(BOARD_SIZE):
+    BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
+    WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
+    WP_Space_Occupied[i].append(Var(f'WP_Occupied_{i},{j}'))
+    Space_Occupied[i].append(Var(f'Space_Occupied_{i},{j}'))
+    White_Potential_Moves[i].append(Var(f'White_Potential_Moves{i},{j}'))
 
 # not done with a loop so we can have the handy comments saying what direction each one is for
 BK_Moves = []
@@ -95,22 +95,36 @@ def parse_board(board):
 
       elif board[i][j]=="WQ":
         f &= WQ_Space_Occupied[i][j]
-        #adds threat squares to each row and column the queen occupies
-        for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
-          for l in range(BOARD_SIZE):
-            f &= White_Potential_Moves[i][k]
-            f &= White_Potential_Moves[l][j]
-            if (k-i == l-j | k-i == (0-(l-j)) ):
-              f &= White_Potential_Moves[k][l]
 
       elif board[i][j]=="WP":
         f &= WP_Space_Occupied[i][j]
-        White_Potential_Moves[i-1][j-1] = True
-        White_Potential_Moves[i+1][j-1] = True
 
       else:
         f &= ~Space_Occupied[i][j]
 
+  return f
+
+def White_Potential_Moves(row, column, piece):
+  f = true
+  if piece="WQ":
+    #adds threat squares to each row and column the queen occupies
+    for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
+      for l in range(BOARD_SIZE):
+        f &= White_Potential_Moves[i][k]
+        f &= White_Potential_Moves[l][j]
+        if (k-i == l-j | k-i == (0-(l-j)) ):
+          f &= White_Potential_Moves[k][l]
+  
+  if piece="WP":
+    # Implemented edge checking
+    if i=0:
+      f &= White_Potential_Moves[i+1][j-1]
+    elif i=BOARD_SIZE-1:
+      f &= White_Potential_Moves[i-1][j-1]
+    elif j!=0:
+      f &= White_Potential_Moves[i-1][j-1]
+      f &= White_Potential_Moves[i+1][j-1]
+  
   return f
 
 #parse the output from the model into a board array
@@ -240,6 +254,8 @@ def Theory():
   E = addConstraints(E, King_Edge_Potential_Moves())
 
   E = addConstraints(E, spaceOccupied())
+
+  E = add_constaints(White_Potential_Moves(i, j, board[i][j]))
 
   # Can't be in both checkmate and stalemate
   E.add_constraint(iff(Checkmate, ~Stalemate))

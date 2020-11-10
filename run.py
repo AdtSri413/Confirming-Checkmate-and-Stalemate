@@ -80,7 +80,7 @@ example_board = [["BK",0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,"WP",0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,"WQ"]]
+[0,0,0,0,0,"WQ","WQ","WQ"]]
 
 # example_board = [
 #   [0,0],
@@ -108,70 +108,7 @@ def parse_board(board):
               #loops break upon encountering a blocking piece, terminating the threat line
               #cardinal directions
               k = i
-              while k >= 0:
-                  k--
-                  if board[k][j] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[k][j] = true
-              k = i
-              while k <= BOARD_SIZE:
-                  k++
-                  if board[k][j] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[k][j] = true
-              k = j
-              while k >= 0:
-                  k--
-                  if board[i][k] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[i][k] = true
-              k = j
-              while k <= BOARD_SIZE:
-                  k++
-                  if board[i][k] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[i][k] = true
-              #diagonals
-              k = i
-              l = j
-              while k >= 0 & l >= 0:
-                  k--
-                  l--
-                  if board[k][l] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[k][j] = true
-              k = i
-              l = j
-              while k >= 0 & l <= BOARD_SIZE:
-                  k--
-                  l++
-                  if board[i][k] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[i][k] = true
-              k = i
-              l = j
-              while k <= BOARD_SIZE & l >= 0:
-                  k++
-                  l--
-                  if board[i][k] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[i][k] = true
-              k = i
-              l = j
-              while k <= BOARD_SIZE & l <= BOARD_SIZE:
-                  k++
-                  l++
-                  if board[i][k] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[i][k] = true
+              
               #TODO: Literally anything but this. This is terrible.
 
 
@@ -242,84 +179,44 @@ def spaceOccupied():
 # logic I am implementing right now will limit it to 2 or fewer queens. In the future, expand this
 # to allow for x or fewer queens
 
-def limitQueens():
-  limitRows = limitAllRows()
-  limitColumns = limitAllColumns()
-  constraints = limitRows + limitColumns
-  return constraints
 
-def limitAllRows():
+def limitNumberPieces(Piece_RowOrColumn, Piece_Space_Occupied):
   constraints = []
-  for i in range(BOARD_SIZE):
-    # WQ_ROW[i] is true if and only if (WQ_Space_Occupied[i][0] | WQ_Space_Occupied[i][1] | ..... | WQ_Space_Occupied[i][board_size] )
-    left_side = WQ_Row[i]
-    right_side = true.negate()
-    for j in range(BOARD_SIZE):
-      right_side |= WQ_Space_Occupied[i][j]
-    constraints.append(iff(left_side, right_side))
+  for rowOrColumn in range(2):
   
-  # now I know if the WQ_Row[i] is true. Next there are 2 main steps:
-  # if a row it true, then for each element a) within the row, and b) outside the row, check every 2 elements in the row vs them
-  # to see if they are true. 
-  for i in range(BOARD_SIZE):
-    #negated because it's an implication
-    selected_row = WQ_Row[i]
-    for j in range(BOARD_SIZE):
-      #j is the index of the first P.O.I
-      for k in range(BOARD_SIZE):
-        #k is the index of the second P.O.I
-        #Only need to check for areas where k>j. Because if k=j, then I am just looking at the same piece, and if
-        # k < j, then I am looking back at pieces I have already added.
-        if k > j:
-          constraint_head = selected_row & WQ_Space_Occupied[i][j] & WQ_Space_Occupied[i][k]
-          constraint_head = constraint_head.negate()
-          constraint_body = true
-          for compareVal in range(BOARD_SIZE):
-            #add every other value for a row into the stuff that cannot be, except j and k, cus those are the 2 that are queens.
-            if compareVal not in [j,k]:
-              
-              constraint_body &= ~WQ_Space_Occupied[i][compareVal]
-            #also add every other row into the mix
-            if compareVal != i:
-              constraint_body &= ~WQ_Row[compareVal]
-          constraints.append(constraint_head | constraint_body)
-  return constraints
-
-def limitAllColumns():
-  constraints = []
-  for i in range(BOARD_SIZE):
-    # WQ_ROW[i] is true if and only if (WQ_Space_Occupied[i][0] | WQ_Space_Occupied[i][1] | ..... | WQ_Space_Occupied[i][board_size] )
-    left_side = WQ_Column[i]
-    right_side = true.negate()
-    for j in range(BOARD_SIZE):
-      right_side |= WQ_Space_Occupied[j][i]
-    constraints.append(iff(left_side, right_side))
-  
-  # now I know if the WQ_Column[i] is true. Next there are 2 main steps:
-  # if a row it true, then for each element a) within the row, and b) outside the row, check every 2 elements in the row vs them
-  # to see if they are true. 
-  for i in range(BOARD_SIZE):
-    #negated because it's an implication
-    selected_column = WQ_Column[i]
-    for j in range(BOARD_SIZE):
-      #j is the index of the first P.O.I
-      for k in range(BOARD_SIZE):
-        #k is the index of the second P.O.I
-        #Only need to check for areas where k>j. Because if k=j, then I am just looking at the same piece, and if
-        # k < j, then I am looking back at pieces I have already added.
-        if k > j:
-          constraint_head = selected_column & WQ_Space_Occupied[j][i] & WQ_Space_Occupied[k][i]
-          constraint_head = constraint_head.negate()
-          constraint_body = true
-          for compareVal in range(BOARD_SIZE):
-            #add every other value for a row into the stuff that cannot be, except j and k, cus those are the 2 that are queens.
-            if compareVal not in [j,k]:
-              
-              constraint_body &= ~WQ_Space_Occupied[compareVal][i]
-            #also add every other row into the mix
-            if compareVal != i:
-              constraint_body &= ~WQ_Column[compareVal]
-          constraints.append(constraint_head | constraint_body)
+    for i in range(BOARD_SIZE):
+      # Piece_RowOrColumn[i] is true if and only if (Piece_Space_Occupied[i][0] | Piece_Space_Occupied[i][1] | ..... | Piece_Space_Occupied[i][board_size] )
+      left_side = Piece_RowOrColumn[rowOrColumn][i]
+      right_side = true.negate()
+      for j in range(BOARD_SIZE):
+        right_side |= Piece_Space_Occupied[i if rowOrColumn == 0 else j][j if rowOrColumn == 0 else i]
+      constraints.append(iff(left_side, right_side))
+    
+    # now I know if the Piece_RowOrColumn[i] is true. Next there are 2 main steps:
+    # if a row it true, then for each element a) within the row, and b) outside the row, check every 2 elements in the row vs them
+    # to see if they are true. 
+    for i in range(BOARD_SIZE):
+      #negated because it's an implication
+      selection = Piece_RowOrColumn[rowOrColumn][i]
+      for j in range(BOARD_SIZE):
+        #j is the index of the first P.O.I
+        for k in range(BOARD_SIZE):
+          #k is the index of the second P.O.I
+          #Only need to check for areas where k>j. Because if k=j, then I am just looking at the same piece, and if
+          # k < j, then I am looking back at pieces I have already added.
+          if k > j:
+            constraint_head = selection & Piece_Space_Occupied[i if rowOrColumn == 0 else j][j if rowOrColumn == 0 else i] & Piece_Space_Occupied[i if rowOrColumn == 0 else k][k if rowOrColumn == 0 else i]
+            constraint_head = constraint_head.negate()
+            constraint_body = true
+            for compareVal in range(BOARD_SIZE):
+              #add every other value for a row into the stuff that cannot be, except j and k, cus those are the 2 that are important.
+              if compareVal not in [j,k]:
+                
+                constraint_body &= ~Piece_Space_Occupied[i if rowOrColumn == 0 else compareVal][compareVal if rowOrColumn == 0 else i]
+              #also add every other row into the mix
+              if compareVal != i:
+                constraint_body &= ~Piece_RowOrColumn[rowOrColumn][compareVal]
+            constraints.append(constraint_head | constraint_body)
   return constraints
 
 
@@ -398,7 +295,7 @@ def Theory():
 
   E = addConstraints(E, spaceOccupied())
 
-  E = addConstraints(E, limitQueens())
+  E = addConstraints(E, limitNumberPieces([WQ_Row, WQ_Column], WQ_Space_Occupied))
 
   # Can't be in both checkmate and stalemate
   #E.add_constraint(iff(Checkmate, ~Stalemate))
@@ -419,7 +316,7 @@ if __name__ == "__main__":
     T = Theory()
 
     #If we want to add an initial board setting you need:
-    #T.add_constraint(parse_board(example_board))
+    T.add_constraint(parse_board(example_board))
 
     solution = T.solve()
     #print(solution)

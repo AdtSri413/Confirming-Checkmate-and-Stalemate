@@ -114,28 +114,28 @@ def parse_board(board):
 def rook_move(i, j):
      k = i
      while k >= 0:
-         k--
+         k-=1
          if board[k][j] != 0:
              break
          else:
              White_Potential_Moves[k][j] = true
      k = i
      while k <= BOARD_SIZE:
-         k++
+         k+=1
          if board[k][j] != 0:
              break
          else:
              White_Potential_Moves[k][j] = true
      k = j
      while k >= 0:
-         k--
+         k-=1
          if board[i][k] != 0:
              break
          else:
              White_Potential_Moves[i][k] = true
      k = j
      while k <= BOARD_SIZE:
-         k++
+         k+=1
          if board[i][k] != 0:
              break
          else:
@@ -145,8 +145,8 @@ def bishop_move(i, j):
     k = i
     l = j
     while k >= 0 & l >= 0:
-        k--
-        l--
+        k-=1
+        l-=1
         if board[k][l] != 0:
             break
         else:
@@ -154,8 +154,8 @@ def bishop_move(i, j):
     k = i
     l = j
     while k >= 0 & l <= BOARD_SIZE:
-        k--
-        l++
+        k-=1
+        l+=1
         if board[i][k] != 0:
             break
         else:
@@ -163,8 +163,8 @@ def bishop_move(i, j):
     k = i
     l = j
     while k <= BOARD_SIZE & l >= 0:
-        k++
-        l--
+        k+=1
+        l-=1
         if board[i][k] != 0:
             break
         else:
@@ -172,8 +172,8 @@ def bishop_move(i, j):
     k = i
     l = j
     while k <= BOARD_SIZE & l <= BOARD_SIZE:
-        k++
-        l++
+        k+=1
+        l+=1
         if board[i][k] != 0:
             break
         else:
@@ -262,10 +262,10 @@ def limitAllRows():
     for j in range(BOARD_SIZE):
       right_side |= WQ_Space_Occupied[i][j]
     constraints.append(iff(left_side, right_side))
-  
+
   # now I know if the WQ_Row[i] is true. Next there are 2 main steps:
   # if a row it true, then for each element a) within the row, and b) outside the row, check every 2 elements in the row vs them
-  # to see if they are true. 
+  # to see if they are true.
   for i in range(BOARD_SIZE):
     #negated because it's an implication
     selected_row = WQ_Row[i]
@@ -282,7 +282,7 @@ def limitAllRows():
           for compareVal in range(BOARD_SIZE):
             #add every other value for a row into the stuff that cannot be, except j and k, cus those are the 2 that are queens.
             if compareVal not in [j,k]:
-              
+
               constraint_body &= ~WQ_Space_Occupied[i][compareVal]
             #also add every other row into the mix
             if compareVal != i:
@@ -299,10 +299,10 @@ def limitAllColumns():
     for j in range(BOARD_SIZE):
       right_side |= WQ_Space_Occupied[j][i]
     constraints.append(iff(left_side, right_side))
-  
+
   # now I know if the WQ_Column[i] is true. Next there are 2 main steps:
   # if a row it true, then for each element a) within the row, and b) outside the row, check every 2 elements in the row vs them
-  # to see if they are true. 
+  # to see if they are true.
   for i in range(BOARD_SIZE):
     #negated because it's an implication
     selected_column = WQ_Column[i]
@@ -319,7 +319,7 @@ def limitAllColumns():
           for compareVal in range(BOARD_SIZE):
             #add every other value for a row into the stuff that cannot be, except j and k, cus those are the 2 that are queens.
             if compareVal not in [j,k]:
-              
+
               constraint_body &= ~WQ_Space_Occupied[compareVal][i]
             #also add every other row into the mix
             if compareVal != i:

@@ -24,6 +24,9 @@ BK_Potential_Moves = []
 #White queen stuff
 WQ_Space_Occupied = []
 
+#White pawn stuff
+WP_Space_Occupied = []
+
 #White Potential Moves
 White_Potential_Moves = []
 
@@ -34,11 +37,13 @@ White_Potential_Moves = []
 for i in range(BOARD_SIZE):
     BK_Space_Occupied.append([])
     WQ_Space_Occupied.append([])
+    WP_Space_Occupied.append([])
     Space_Occupied.append([])
     White_Potential_Moves.append([])
     for j in range(BOARD_SIZE):
         BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
         WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
+        WP_Space_Occupied[i].append(Var(f'WP_Occupied_{i},{j}'))
         Space_Occupied[i].append(Var(f'Space_Occupied_{i},{j}'))
         White_Potential_Moves[i].append(Var(f'White_Potential_Moves{i},{j}'))
 
@@ -69,7 +74,7 @@ example_board = [["BK",0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
+[0,0,"WP",0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,"WQ"]]
 
@@ -213,13 +218,13 @@ def spaceOccupied():
       constraints.append(~BK_Space_Occupied[i][j] | Space_Occupied[i][j])
       #WQ_Space_Occupied[i][j] -> Space_Occupied[i][j]
       constraints.append(~WQ_Space_Occupied[i][j] | Space_Occupied[i][j])
+      constraints.append(~WP_Space_Occupied[i][j] | Space_Occupied[i][j])
 
       #add more constraints for occupying spaces as more white pieces are added.
 
       # Also here we will make sure there is only 1 piece per square.
       # (BK_Space_Occupied[i][j] -> ~WQ_Space_Occupied[i][j]) as well as (WQ_Space_Occupied[i][j] -> ~BK_Space_Occupied[i][j])
-      constraints.append( (~BK_Space_Occupied[i][j] | ~WQ_Space_Occupied[i][j]) )
-      constraints.append( (~WQ_Space_Occupied[i][j] | ~BK_Space_Occupied[i][j]) )
+      constraints.append( (~BK_Space_Occupied[i][j] | ~WQ_Space_Occupied[i][j] | ~WP_Space_Occupied[i][j] ) )
 
       #add more constraiints for pieces on pieces as pieces are added.
   return constraints

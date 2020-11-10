@@ -187,24 +187,23 @@ def bishop_move(i, j):
               #         White_Potential_Moves[l][j] = true
               #         if (k-i == l-j | k-i == (0-(l-j)) ):
               #             White_Potential_Moves[k][l] = true
-          else:
-            f &= ~Space_Occupied[i][j]
-  return f
+          
+    return f
 
 def White_Potential_Moves(row, column, piece):
   f = true
-  if piece="WQ":
+  if piece=="WQ":
      #adds threat squares to each row and column the queen occupies
               #loops break upon encountering a blocking piece, terminating the threat line
               #cardinal directions
               rook_move(i, j)
               bishop_move(i, j)
   
-  if piece="WP":
+  if piece=="WP":
     # Implemented edge checking
-    if i=0:
+    if i==0:
       f &= White_Potential_Moves[i+1][j-1]
-    elif i=BOARD_SIZE-1:
+    elif i==BOARD_SIZE-1:
       f &= White_Potential_Moves[i-1][j-1]
     elif j!=0:
       f &= White_Potential_Moves[i-1][j-1]
@@ -385,15 +384,10 @@ def Theory():
 
   E = addConstraints(E, spaceOccupied())
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  E = add_constaints(White_Potential_Moves(i, j, board[i][j]))
-=======
-  E = addConstraints(E, limitQueens())
->>>>>>> 64275c4a04d0ace44dbf26f5b0574fd0fcc4ecee
-=======
+  #E.add_constraint(White_Potential_Moves(i, j, board[i][j]))
+
   E = addConstraints(E, limitNumberPieces([WQ_Row, WQ_Column], WQ_Space_Occupied))
->>>>>>> yarn
+
 
   # Can't be in both checkmate and stalemate
   #E.add_constraint(iff(Checkmate, ~Stalemate))
@@ -414,7 +408,7 @@ if __name__ == "__main__":
     T = Theory()
 
     #If we want to add an initial board setting you need:
-    T.add_constraint(parse_board(example_board))
+    #T.add_constraint(parse_board(example_board))
 
     solution = T.solve()
     #print(solution)

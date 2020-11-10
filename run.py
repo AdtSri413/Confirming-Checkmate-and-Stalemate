@@ -78,9 +78,9 @@ example_board = [["BK",0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
-[0,0,"WP",0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
-[0,0,0,0,0,"WQ","WQ","WQ"]]
+[0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,"WQ","WQ"]]
 
 # example_board = [
 #   [0,0],
@@ -110,6 +110,7 @@ def parse_board(board):
 
       else:
         f &= ~Space_Occupied[i][j]
+  return f
 
 
 def rook_move(i, j):
@@ -190,7 +191,7 @@ def bishop_move(i, j):
 
     return f
 
-def White_Potential_Moves(row, column, piece):
+def White_Potential_Movement(row, column, piece):
   f = true
   if piece=="WQ":
      #adds threat squares to each row and column the queen occupies
@@ -408,7 +409,8 @@ if __name__ == "__main__":
     T = Theory()
 
     #If we want to add an initial board setting you need:
-    #T.add_constraint(parse_board(example_board))
+    print(parse_board(example_board))
+    T.add_constraint(parse_board(example_board))
 
     solution = T.solve()
     #print(solution)

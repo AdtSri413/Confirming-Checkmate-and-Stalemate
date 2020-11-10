@@ -26,6 +26,9 @@ WQ_Space_Occupied = []
 WQ_Row = []
 WQ_Column = []
 
+#White pawn stuff
+WP_Space_Occupied = []
+
 #White Potential Moves
 White_Potential_Moves = []
 
@@ -36,6 +39,7 @@ White_Potential_Moves = []
 for i in range(BOARD_SIZE):
     BK_Space_Occupied.append([])
     WQ_Space_Occupied.append([])
+    WP_Space_Occupied.append([])
     Space_Occupied.append([])
     White_Potential_Moves.append([])
     WQ_Row.append(Var(f"WQ_Row_{i}"))
@@ -43,6 +47,7 @@ for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
         BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
         WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
+        WP_Space_Occupied[i].append(Var(f'WP_Occupied_{i},{j}'))
         Space_Occupied[i].append(Var(f'Space_Occupied_{i},{j}'))
         White_Potential_Moves[i].append(Var(f'White_Potential_Moves{i},{j}'))
 
@@ -73,8 +78,8 @@ example_board = [["BK",0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
+[0,0,"WP",0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,"WQ"],
 [0,0,0,0,0,0,0,"WQ"]]
 
 # example_board = [
@@ -100,12 +105,82 @@ def parse_board(board):
           elif board[i][j]=="WQ":
               f &= WQ_Space_Occupied[i][j]
               #adds threat squares to each row and column the queen occupies
-              for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
-                  for l in range(BOARD_SIZE):
-                      f &= White_Potential_Moves[i][k]
-                      f &= White_Potential_Moves[l][j]
-                      if (k-i == l-j | k-i == (0-(l-j)) ):
-                          f &= White_Potential_Moves[k][l]
+              #loops break upon encountering a blocking piece, terminating the threat line
+              #cardinal directions
+              k = i
+              while k >= 0:
+                  k--
+                  if board[k][j] != 0:
+                      break
+                  else:
+                      White_Potential_Moves[k][j] = true
+              k = i
+              while k <= BOARD_SIZE:
+                  k++
+                  if board[k][j] != 0:
+                      break
+                  else:
+                      White_Potential_Moves[k][j] = true
+              k = j
+              while k >= 0:
+                  k--
+                  if board[i][k] != 0:
+                      break
+                  else:
+                      White_Potential_Moves[i][k] = true
+              k = j
+              while k <= BOARD_SIZE:
+                  k++
+                  if board[i][k] != 0:
+                      break
+                  else:
+                      White_Potential_Moves[i][k] = true
+              #diagonals
+              k = i
+              l = j
+              while k >= 0 & l >= 0:
+                  k--
+                  l--
+                  if board[k][l] != 0:
+                      break
+                  else:
+                      White_Potential_Moves[k][j] = true
+              k = i
+              l = j
+              while k >= 0 & l <= BOARD_SIZE:
+                  k--
+                  l++
+                  if board[i][k] != 0:
+                      break
+                  else:
+                      White_Potential_Moves[i][k] = true
+              k = i
+              l = j
+              while k <= BOARD_SIZE & l >= 0:
+                  k++
+                  l--
+                  if board[i][k] != 0:
+                      break
+                  else:
+                      White_Potential_Moves[i][k] = true
+              k = i
+              l = j
+              while k <= BOARD_SIZE & l <= BOARD_SIZE:
+                  k++
+                  l++
+                  if board[i][k] != 0:
+                      break
+                  else:
+                      White_Potential_Moves[i][k] = true
+              #TODO: Literally anything but this. This is terrible.
+
+
+              # for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
+              #     for l in range(BOARD_SIZE):
+              #         White_Potential_Moves[i][k] = true
+              #         White_Potential_Moves[l][j] = true
+              #         if (k-i == l-j | k-i == (0-(l-j)) ):
+              #             White_Potential_Moves[k][l] = true
           else:
             f &= ~Space_Occupied[i][j]
   return f
@@ -153,13 +228,13 @@ def spaceOccupied():
       constraints.append(~BK_Space_Occupied[i][j] | Space_Occupied[i][j])
       #WQ_Space_Occupied[i][j] -> Space_Occupied[i][j]
       constraints.append(~WQ_Space_Occupied[i][j] | Space_Occupied[i][j])
+      constraints.append(~WP_Space_Occupied[i][j] | Space_Occupied[i][j])
 
-      #add more constraints for occupying spaces as more white pieces are added. 
+      #add more constraints for occupying spaces as more white pieces are added.
 
       # Also here we will make sure there is only 1 piece per square.
       # (BK_Space_Occupied[i][j] -> ~WQ_Space_Occupied[i][j]) as well as (WQ_Space_Occupied[i][j] -> ~BK_Space_Occupied[i][j])
-      constraints.append( (~BK_Space_Occupied[i][j] | ~WQ_Space_Occupied[i][j]) )
-      constraints.append( (~WQ_Space_Occupied[i][j] | ~BK_Space_Occupied[i][j]) )
+      constraints.append( (~BK_Space_Occupied[i][j] | ~WQ_Space_Occupied[i][j] | ~WP_Space_Occupied[i][j] ) )
 
       #add more constraiints for pieces on pieces as pieces are added.
   return constraints
@@ -304,7 +379,7 @@ def King_Edge_Potential_Moves():
       if (j == BOARD_SIZE) & (i == BOARD_SIZE):
         # can't move down/right
         constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[7])
-  
+
   return constraints
 
 # little function to add multiple constraints from a list
@@ -345,7 +420,7 @@ if __name__ == "__main__":
 
     #If we want to add an initial board setting you need:
     #T.add_constraint(parse_board(example_board))
-    
+
     solution = T.solve()
     #print(solution)
     print(draw_board(parse_solution(solution)))

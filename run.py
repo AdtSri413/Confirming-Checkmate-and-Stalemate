@@ -116,28 +116,28 @@ def rook_move(i, j):
      k = i
      while k >= 0:
          k-=1
-         if board[k][j] != 0:
+         if not Space_Occupied[k][j]:
              break
          else:
              White_Potential_Moves[k][j] = true
      k = i
      while k <= BOARD_SIZE:
          k+=1
-         if board[k][j] != 0:
+         if not Space_Occupied[k][j]:
              break
          else:
              White_Potential_Moves[k][j] = true
      k = j
      while k >= 0:
          k-=1
-         if board[i][k] != 0:
+         if not Space_Occupied[i][k]:
              break
          else:
              White_Potential_Moves[i][k] = true
      k = j
      while k <= BOARD_SIZE:
          k+=1
-         if board[i][k] != 0:
+         if not Space_Occupied[i][k]:
              break
          else:
              White_Potential_Moves[i][k] = true
@@ -148,7 +148,7 @@ def bishop_move(i, j):
     while k >= 0 & l >= 0:
         k-=1
         l-=1
-        if board[k][l] != 0:
+        if not Space_Occupied[k][l]:
             break
         else:
             White_Potential_Moves[k][j] = true
@@ -157,7 +157,7 @@ def bishop_move(i, j):
     while k >= 0 & l <= BOARD_SIZE:
         k-=1
         l+=1
-        if board[i][k] != 0:
+        if not Space_Occupied[i][k]:
             break
         else:
             White_Potential_Moves[i][k] = true
@@ -166,7 +166,7 @@ def bishop_move(i, j):
     while k <= BOARD_SIZE & l >= 0:
         k+=1
         l-=1
-        if board[i][k] != 0:
+        if not Space_Occupied[i][k]:
             break
         else:
             White_Potential_Moves[i][k] = true
@@ -175,7 +175,7 @@ def bishop_move(i, j):
     while k <= BOARD_SIZE & l <= BOARD_SIZE:
         k+=1
         l+=1
-        if board[i][k] != 0:
+        if not Space_Occupied[i][k]:
             break
         else:
             White_Potential_Moves[i][k] = true
@@ -187,7 +187,7 @@ def bishop_move(i, j):
               #         White_Potential_Moves[l][j] = true
               #         if (k-i == l-j | k-i == (0-(l-j)) ):
               #             White_Potential_Moves[k][l] = true
-          
+
     return f
 
 def White_Potential_Moves(row, column, piece):
@@ -198,7 +198,7 @@ def White_Potential_Moves(row, column, piece):
               #cardinal directions
               rook_move(i, j)
               bishop_move(i, j)
-  
+
   if piece=="WP":
     # Implemented edge checking
     if i==0:
@@ -208,7 +208,7 @@ def White_Potential_Moves(row, column, piece):
     elif j!=0:
       f &= White_Potential_Moves[i-1][j-1]
       f &= White_Potential_Moves[i+1][j-1]
-  
+
   return f
 
 #parse the output from the model into a board array
@@ -272,7 +272,7 @@ def spaceOccupied():
 def limitNumberPieces(Piece_RowOrColumn, Piece_Space_Occupied):
   constraints = []
   for rowOrColumn in range(2):
-  
+
     for i in range(BOARD_SIZE):
       # Piece_RowOrColumn[i] is true if and only if (Piece_Space_Occupied[i][0] | Piece_Space_Occupied[i][1] | ..... | Piece_Space_Occupied[i][board_size] )
       left_side = Piece_RowOrColumn[rowOrColumn][i]
@@ -280,10 +280,10 @@ def limitNumberPieces(Piece_RowOrColumn, Piece_Space_Occupied):
       for j in range(BOARD_SIZE):
         right_side |= Piece_Space_Occupied[i if rowOrColumn == 0 else j][j if rowOrColumn == 0 else i]
       constraints.append(iff(left_side, right_side))
-    
+
     # now I know if the Piece_RowOrColumn[i] is true. Next there are 2 main steps:
     # if a row it true, then for each element a) within the row, and b) outside the row, check every 2 elements in the row vs them
-    # to see if they are true. 
+    # to see if they are true.
     for i in range(BOARD_SIZE):
       #negated because it's an implication
       selection = Piece_RowOrColumn[rowOrColumn][i]
@@ -300,7 +300,7 @@ def limitNumberPieces(Piece_RowOrColumn, Piece_Space_Occupied):
             for compareVal in range(BOARD_SIZE):
               #add every other value for a row into the stuff that cannot be, except j and k, cus those are the 2 that are important.
               if compareVal not in [j,k]:
-                
+
                 constraint_body &= ~Piece_Space_Occupied[i if rowOrColumn == 0 else compareVal][compareVal if rowOrColumn == 0 else i]
               #also add every other row into the mix
               if compareVal != i:

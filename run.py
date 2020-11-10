@@ -23,6 +23,8 @@ BK_Potential_Moves = []
 
 #White queen stuff
 WQ_Space_Occupied = []
+WQ_Row = []
+WQ_Column = []
 
 #White Potential Moves
 White_Potential_Moves = []
@@ -36,6 +38,8 @@ for i in range(BOARD_SIZE):
     WQ_Space_Occupied.append([])
     Space_Occupied.append([])
     White_Potential_Moves.append([])
+    WQ_Row.append(Var(f"WQ_Row_{i}"))
+    WQ_Column.append(Var(f"WQ_Column_{i}"))
     for j in range(BOARD_SIZE):
         BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
         WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
@@ -70,8 +74,13 @@ example_board = [["BK",0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,"WQ"],
 [0,0,0,0,0,0,0,"WQ"]]
+
+# example_board = [
+#   [0,0],
+#   [0,"WQ"]
+# ]
 
 # function for setting the initial board configuration. ALL it will do is set
 # The positions of pieces. This may be a question to ask for feedback, if we can set
@@ -107,6 +116,7 @@ def parse_solution(solution):
     [0 for i in range(BOARD_SIZE)] for i in range(BOARD_SIZE)
   ]
   if solution == None:
+    print("No solution")
     return board
   #replace the 0's with pieces as needed
   for key, value in solution.items():
@@ -153,6 +163,90 @@ def spaceOccupied():
 
       #add more constraiints for pieces on pieces as pieces are added.
   return constraints
+
+# logic I am implementing right now will limit it to 2 or fewer queens. In the future, expand this
+# to allow for x or fewer queens
+
+def limitQueens():
+  limitRows = limitAllRows()
+  limitColumns = limitAllColumns()
+  constraints = limitRows + limitColumns
+  return constraints
+
+def limitAllRows():
+  constraints = []
+  for i in range(BOARD_SIZE):
+    # WQ_ROW[i] is true if and only if (WQ_Space_Occupied[i][0] | WQ_Space_Occupied[i][1] | ..... | WQ_Space_Occupied[i][board_size] )
+    left_side = WQ_Row[i]
+    right_side = true.negate()
+    for j in range(BOARD_SIZE):
+      right_side |= WQ_Space_Occupied[i][j]
+    constraints.append(iff(left_side, right_side))
+  
+  # now I know if the WQ_Row[i] is true. Next there are 2 main steps:
+  # if a row it true, then for each element a) within the row, and b) outside the row, check every 2 elements in the row vs them
+  # to see if they are true. 
+  for i in range(BOARD_SIZE):
+    #negated because it's an implication
+    selected_row = WQ_Row[i]
+    for j in range(BOARD_SIZE):
+      #j is the index of the first P.O.I
+      for k in range(BOARD_SIZE):
+        #k is the index of the second P.O.I
+        #Only need to check for areas where k>j. Because if k=j, then I am just looking at the same piece, and if
+        # k < j, then I am looking back at pieces I have already added.
+        if k > j:
+          constraint_head = selected_row & WQ_Space_Occupied[i][j] & WQ_Space_Occupied[i][k]
+          constraint_head = constraint_head.negate()
+          constraint_body = true
+          for compareVal in range(BOARD_SIZE):
+            #add every other value for a row into the stuff that cannot be, except j and k, cus those are the 2 that are queens.
+            if compareVal not in [j,k]:
+              
+              constraint_body &= ~WQ_Space_Occupied[i][compareVal]
+            #also add every other row into the mix
+            if compareVal != i:
+              constraint_body &= ~WQ_Row[compareVal]
+          constraints.append(constraint_head | constraint_body)
+  return constraints
+
+def limitAllColumns():
+  constraints = []
+  for i in range(BOARD_SIZE):
+    # WQ_ROW[i] is true if and only if (WQ_Space_Occupied[i][0] | WQ_Space_Occupied[i][1] | ..... | WQ_Space_Occupied[i][board_size] )
+    left_side = WQ_Column[i]
+    right_side = true.negate()
+    for j in range(BOARD_SIZE):
+      right_side |= WQ_Space_Occupied[j][i]
+    constraints.append(iff(left_side, right_side))
+  
+  # now I know if the WQ_Column[i] is true. Next there are 2 main steps:
+  # if a row it true, then for each element a) within the row, and b) outside the row, check every 2 elements in the row vs them
+  # to see if they are true. 
+  for i in range(BOARD_SIZE):
+    #negated because it's an implication
+    selected_column = WQ_Column[i]
+    for j in range(BOARD_SIZE):
+      #j is the index of the first P.O.I
+      for k in range(BOARD_SIZE):
+        #k is the index of the second P.O.I
+        #Only need to check for areas where k>j. Because if k=j, then I am just looking at the same piece, and if
+        # k < j, then I am looking back at pieces I have already added.
+        if k > j:
+          constraint_head = selected_column & WQ_Space_Occupied[j][i] & WQ_Space_Occupied[k][i]
+          constraint_head = constraint_head.negate()
+          constraint_body = true
+          for compareVal in range(BOARD_SIZE):
+            #add every other value for a row into the stuff that cannot be, except j and k, cus those are the 2 that are queens.
+            if compareVal not in [j,k]:
+              
+              constraint_body &= ~WQ_Space_Occupied[compareVal][i]
+            #also add every other row into the mix
+            if compareVal != i:
+              constraint_body &= ~WQ_Column[compareVal]
+          constraints.append(constraint_head | constraint_body)
+  return constraints
+
 
 # function for generating a list of constraints that is everything we need to determine if there are multiple kings
 # theoretically without this a person could create a board configuration with multiple black kings on it, which is not
@@ -229,18 +323,20 @@ def Theory():
 
   E = addConstraints(E, spaceOccupied())
 
+  E = addConstraints(E, limitQueens())
+
   # Can't be in both checkmate and stalemate
-  E.add_constraint(iff(Checkmate, ~Stalemate))
+  #E.add_constraint(iff(Checkmate, ~Stalemate))
 
   # iff BK_No_Moves (ie the king has no valid moves), the game is either in checkmate or stalemate. pretty obvious
   # this will change if we add other pieces to the black side that are able to move, where we will also have to check
   # if the other peices are unable to move
-  E.add_constraint(iff(BK_No_Moves, Checkmate | Stalemate))
+  #E.add_constraint(iff(BK_No_Moves, Checkmate | Stalemate))
 
   # if the king is in check, and doesn't have moves, then it is in checkmate. This will narrow the models down from the
   # previous constraint, which only simplified it to either checkmate or stalemate. now we know which one.
   # might be a more efficient way to do this, but this makes more sense in my head, so it's the way I'm doing it.
-  E.add_constraint(iff(Check & BK_No_Moves, Checkmate))
+  #E.add_constraint(iff(Check & BK_No_Moves, Checkmate))
 
   return E
 

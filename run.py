@@ -98,72 +98,77 @@ def parse_board(board):
               #adds threat squares to each row and column the queen occupies
               #loops break upon encountering a blocking piece, terminating the threat line
               #cardinal directions
-              k = i
-              while k >= 0:
-                  k--
-                  if board[k][j] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[k][j] = true
-              k = i
-              while k <= BOARD_SIZE:
-                  k++
-                  if board[k][j] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[k][j] = true
-              k = j
-              while k >= 0:
-                  k--
-                  if board[i][k] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[i][k] = true
-              k = j
-              while k <= BOARD_SIZE:
-                  k++
-                  if board[i][k] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[i][k] = true
-              #diagonals
-              k = i
-              l = j
-              while k >= 0 & l >= 0:
-                  k--
-                  l--
-                  if board[k][l] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[k][j] = true
-              k = i
-              l = j
-              while k >= 0 & l <= BOARD_SIZE:
-                  k--
-                  l++
-                  if board[i][k] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[i][k] = true
-              k = i
-              l = j
-              while k <= BOARD_SIZE & l >= 0:
-                  k++
-                  l--
-                  if board[i][k] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[i][k] = true
-              k = i
-              l = j
-              while k <= BOARD_SIZE & l <= BOARD_SIZE:
-                  k++
-                  l++
-                  if board[i][k] != 0:
-                      break
-                  else:
-                      White_Potential_Moves[i][k] = true
-              #TODO: Literally anything but this. This is terrible.
+              rook_move(i, j)
+              bishop_move(i, j)
+
+
+def rook_move(i, j):
+     k = i
+     while k >= 0:
+         k--
+         if board[k][j] != 0:
+             break
+         else:
+             White_Potential_Moves[k][j] = true
+     k = i
+     while k <= BOARD_SIZE:
+         k++
+         if board[k][j] != 0:
+             break
+         else:
+             White_Potential_Moves[k][j] = true
+     k = j
+     while k >= 0:
+         k--
+         if board[i][k] != 0:
+             break
+         else:
+             White_Potential_Moves[i][k] = true
+     k = j
+     while k <= BOARD_SIZE:
+         k++
+         if board[i][k] != 0:
+             break
+         else:
+             White_Potential_Moves[i][k] = true
+
+def bishop_move(i, j):
+    k = i
+    l = j
+    while k >= 0 & l >= 0:
+        k--
+        l--
+        if board[k][l] != 0:
+            break
+        else:
+            White_Potential_Moves[k][j] = true
+    k = i
+    l = j
+    while k >= 0 & l <= BOARD_SIZE:
+        k--
+        l++
+        if board[i][k] != 0:
+            break
+        else:
+            White_Potential_Moves[i][k] = true
+    k = i
+    l = j
+    while k <= BOARD_SIZE & l >= 0:
+        k++
+        l--
+        if board[i][k] != 0:
+            break
+        else:
+            White_Potential_Moves[i][k] = true
+    k = i
+    l = j
+    while k <= BOARD_SIZE & l <= BOARD_SIZE:
+        k++
+        l++
+        if board[i][k] != 0:
+            break
+        else:
+            White_Potential_Moves[i][k] = true
 
 
               # for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies

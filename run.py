@@ -324,7 +324,7 @@ def limitNumberPieces(Piece_RowOrColumn, Piece_Space_Occupied, allowedNum):
         # k is iterated through all other rows
         for k in range(BOARD_SIZE):
           if k not in [i,j]:
-            constraint_body &= Piece_RowOrColumn[0][k]
+            constraint_body &= ~Piece_RowOrColumn[0][k]
         constraints.append(constraint_head | constraint_body)
 
   return constraints

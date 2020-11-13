@@ -78,9 +78,9 @@ example_board = [["BK",0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,"WQ","WQ"]]
+[0,0,0,0,0,"WQ",0,0],
+[0,0,0,0,0,0,"WQ",0],
+[0,0,0,0,0,0,0,"WQ"]]
 
 # example_board = [
 #   [0,0],
@@ -270,7 +270,9 @@ def spaceOccupied():
 # to allow for x or fewer queens
 
 
-def limitNumberPieces(Piece_RowOrColumn, Piece_Space_Occupied):
+def limitNumberPieces(Piece_RowOrColumn, Piece_Space_Occupied, allowedNum):
+  if allowedNum < 1:
+    raise ValueError("Must be allowing at least 1 piece. If ya don't want any allowed then just get rid of the call for this or some shit idk fuck off")
   constraints = []
   for rowOrColumn in range(2):
 
@@ -307,6 +309,24 @@ def limitNumberPieces(Piece_RowOrColumn, Piece_Space_Occupied):
               if compareVal != i:
                 constraint_body &= ~Piece_RowOrColumn[rowOrColumn][compareVal]
             constraints.append(constraint_head | constraint_body)
+  # hating my life: so turns out I forgot about diagonal lines. If all the queens arer in diagonals from each other, right now they bypass my checks.
+  # so this solves that
+  # I need to select the two important rows. also this can only be fore rows and its all cool.
+  # i is for the first important row
+  for i in range(BOARD_SIZE):
+    # j is for the second important row
+    for j in range(BOARD_SIZE):
+      if j > i:
+        #if (Row1 and row2) -> not row3 and not row4 ....
+        constraint_head = Piece_RowOrColumn[0][i] & Piece_RowOrColumn[0][j]
+        constraint_head = constraint_head.negate()
+        constraint_body = true
+        # k is iterated through all other rows
+        for k in range(BOARD_SIZE):
+          if k not in [i,j]:
+            constraint_body &= Piece_RowOrColumn[0][k]
+        constraints.append(constraint_head | constraint_body)
+
   return constraints
 
 
@@ -387,7 +407,7 @@ def Theory():
 
   #E.add_constraint(White_Potential_Movement(i, j, board[i][j]))
 
-  E = addConstraints(E, limitNumberPieces([WQ_Row, WQ_Column], WQ_Space_Occupied))
+  E = addConstraints(E, limitNumberPieces([WQ_Row, WQ_Column], WQ_Space_Occupied, 2))
 
 
   # Can't be in both checkmate and stalemate
@@ -409,7 +429,6 @@ if __name__ == "__main__":
     T = Theory()
 
     #If we want to add an initial board setting you need:
-    print(parse_board(example_board))
     T.add_constraint(parse_board(example_board))
 
     solution = T.solve()

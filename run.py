@@ -269,6 +269,59 @@ def queen_move(i,j):
   vertical_takes = bishop_move(i,j)
   return horizontal_takes & vertical_takes
 
+def knight_move(i, j):
+  f = true
+  #move 2, 1
+  #left Moves
+  if ((i-2) > 0):
+      if ((j-1) > 0):
+          f &= White_Potential_Moves[i-2][j-1]
+      if ((j+1) < (BOARD_SIZE-1)):
+          f &= White_Potential_Moves[i-2][j+1]
+  #Right
+  if ((i+2) < (BOARD_SIZE-1):
+      if ((j-1) > 0):
+          f &= White_Potential_Moves[i+2][j-1]
+      if ((j+1) < (BOARD_SIZE-1)):
+          f &= White_Potential_Moves[i+2][j+1]
+  #forwards
+  if ((j-2) > 0):
+      if ((i-1) > 0):
+          f &= White_Potential_Moves[i-1][j-2]
+      if ((i+1) < (BOARD_SIZE-1)):
+          f &= White_Potential_Moves[i+1][j-2]
+  #backwards
+  if ((j+2) < (BOARD_SIZE-1):
+      if ((i-1) > 0):
+          f &= White_Potential_Moves[i-1][j+2]
+      if ((i+1) < (BOARD_SIZE-1)):
+          f &= White_Potential_Moves[i+1][j+2]
+  #move 1, 2
+  #left Moves
+  if ((i-1) > 0):
+      if ((j-2) > 0):
+          f &= White_Potential_Moves[i-1][j-2]
+      if ((j+2) < (BOARD_SIZE-1)):
+          f &= White_Potential_Moves[i-1][j+2]
+  #Right
+  if ((i+1) < (BOARD_SIZE-1):
+      if ((j-2) > 0):
+          f &= White_Potential_Moves[i+1][j-2]
+      if ((j+2) < (BOARD_SIZE-1)):
+          f &= White_Potential_Moves[i+1][j+2]
+  #forwards
+  if ((j-1) > 0):
+      if ((i-2) > 0):
+          f &= White_Potential_Moves[i-2][j-1]
+      if ((i+2) < (BOARD_SIZE-1)):
+          f &= White_Potential_Moves[i+2][j-1]
+  #backwards
+  if ((j+1) < (BOARD_SIZE-1):
+      if ((i-2) > 0):
+          f &= White_Potential_Moves[i-2][j+1]
+      if ((i+2) < (BOARD_SIZE-1)):
+          f &= White_Potential_Moves[i+2][j+1]
+
 def White_Potential_Movement(availablePieces):
   constraints = []
   for piece in availablePieces:

@@ -23,8 +23,15 @@ BK_Potential_Moves = []
 
 #White queen stuff
 WQ_Space_Occupied = []
-WQ_Row = []
-WQ_Column = []
+WQ_Count = []
+for i in range((BOARD_SIZE**2)+1):
+  WQ_Count.append([])
+  for j in range((BOARD_SIZE**2)+1):
+    WQ_Count[i].append(Var(f'WQ_count_by_{i}_is_{j}'))
+
+WQ_Total_Count = []
+for i in range(BOARD_SIZE**2+1):
+  WQ_Total_Count.append(Var(f'WQ_total_is_{i}'))
 
 #White pawn stuff
 WP_Space_Occupied = []
@@ -42,8 +49,6 @@ for i in range(BOARD_SIZE):
     WP_Space_Occupied.append([])
     Space_Occupied.append([])
     White_Potential_Moves.append([])
-    WQ_Row.append(Var(f"WQ_Row_{i}"))
-    WQ_Column.append(Var(f"WQ_Column_{i}"))
     for j in range(BOARD_SIZE):
         BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
         WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
@@ -269,66 +274,48 @@ def spaceOccupied():
 # logic I am implementing right now will limit it to 2 or fewer queens. In the future, expand this
 # to allow for x or fewer queens
 
+# If exact is true, then must have exactly "allowedNum" number of pieces on the board. If exact is false,
+# can have up to and including "allowedNum" number of pieces on the board.
+def limitNumberPieces(Piece_Space_Occupied, Piece_Count, Piece_Total_Count, allowedNum, exact = False):
 
-def limitNumberPieces(Piece_RowOrColumn, Piece_Space_Occupied, allowedNum):
-  if allowedNum < 1:
-    raise ValueError("Must be allowing at least 1 piece. If ya don't want any allowed then just get rid of the call for this or some shit idk fuck off")
+  # The code below was very heavily inspired (read: I rewrote it using our variable names) from the code provided by Prof. Muise.
+
   constraints = []
-  for rowOrColumn in range(2):
+  # for whatever count is true when it gets to the end of the board, the corresponding Total_Count should relate to that.
+  for i in range(BOARD_SIZE**2+1):
+    constraints.append(iff(Piece_Total_Count[i], Piece_Count[(BOARD_SIZE**2)-1][i]))
+  
+  # restricting any time that it won't claim there are more pieces than spaces that have been checked
+  for i in range(BOARD_SIZE**2):
+    for j in range(i+2, (BOARD_SIZE**2)+1):
+      constraints.append(~Piece_Count[i][j])
+  
+  # the first board value will be true of there is a white queen there, false if there isn't
+  constraints.append(iff(Piece_Count[0][0], ~Piece_Space_Occupied[0][0]))
+  constraints.append(iff(Piece_Count[0][1], Piece_Space_Occupied[0][0]))
 
-    for i in range(BOARD_SIZE):
-      # Piece_RowOrColumn[i] is true if and only if (Piece_Space_Occupied[i][0] | Piece_Space_Occupied[i][1] | ..... | Piece_Space_Occupied[i][board_size] )
-      left_side = Piece_RowOrColumn[rowOrColumn][i]
-      right_side = true.negate()
-      for j in range(BOARD_SIZE):
-        right_side |= Piece_Space_Occupied[i if rowOrColumn == 0 else j][j if rowOrColumn == 0 else i]
-      constraints.append(iff(left_side, right_side))
-
-    # now I know if the Piece_RowOrColumn[i] is true. Next there are 2 main steps:
-    # if a row it true, then for each element a) within the row, and b) outside the row, check every 2 elements in the row vs them
-    # to see if they are true.
-    for i in range(BOARD_SIZE):
-      #negated because it's an implication
-      selection = Piece_RowOrColumn[rowOrColumn][i]
-      for j in range(BOARD_SIZE):
-        #j is the index of the first P.O.I
-        for k in range(BOARD_SIZE):
-          #k is the index of the second P.O.I
-          #Only need to check for areas where k>j. Because if k=j, then I am just looking at the same piece, and if
-          # k < j, then I am looking back at pieces I have already added.
-          if k > j:
-            constraint_head = selection & Piece_Space_Occupied[i if rowOrColumn == 0 else j][j if rowOrColumn == 0 else i] & Piece_Space_Occupied[i if rowOrColumn == 0 else k][k if rowOrColumn == 0 else i]
-            constraint_head = constraint_head.negate()
-            constraint_body = true
-            for compareVal in range(BOARD_SIZE):
-              #add every other value for a row into the stuff that cannot be, except j and k, cus those are the 2 that are important.
-              if compareVal not in [j,k]:
-
-                constraint_body &= ~Piece_Space_Occupied[i if rowOrColumn == 0 else compareVal][compareVal if rowOrColumn == 0 else i]
-              #also add every other row into the mix
-              if compareVal != i:
-                constraint_body &= ~Piece_RowOrColumn[rowOrColumn][compareVal]
-            constraints.append(constraint_head | constraint_body)
-  # hating my life: so turns out I forgot about diagonal lines. If all the queens arer in diagonals from each other, right now they bypass my checks.
-  # so this solves that
-  # I need to select the two important rows. also this can only be fore rows and its all cool.
-  # i is for the first important row
-  for i in range(BOARD_SIZE):
-    # j is for the second important row
-    for j in range(BOARD_SIZE):
-      if j > i:
-        #if (Row1 and row2) -> not row3 and not row4 ....
-        constraint_head = Piece_RowOrColumn[0][i] & Piece_RowOrColumn[0][j]
-        constraint_head = constraint_head.negate()
-        constraint_body = true
-        # k is iterated through all other rows
-        for k in range(BOARD_SIZE):
-          if k not in [i,j]:
-            constraint_body &= ~Piece_RowOrColumn[0][k]
-        constraints.append(constraint_head | constraint_body)
-
+  for i in range(1, BOARD_SIZE**2):
+    # i1 and i2 used because shape for the space occupied variable is always a 2d array, while Piece_Count is a 1d array
+    i1 = i//BOARD_SIZE
+    i2 = i%BOARD_SIZE
+    left = Piece_Count[i][0]
+    right = Piece_Count[i-1][0] & ~Piece_Space_Occupied[i1][i2]
+    constraints.append(iff(left, right))
+    for j in range(1, i+2):
+      # don't need to create j1 and j2 like with i, because j is never used as an index for the space_occupied variable.
+      increase = Piece_Count[i-1][j-1] & Piece_Space_Occupied[i1][i2]
+      constant = Piece_Count[i-1][j] & ~Piece_Space_Occupied[i1][i2]
+      constraints.append(iff(Piece_Count[i][j], increase | constant))
+  
+  # Additional part to use the "allowedNum" and "extra" to make sure there are the right number of pieces
+  if exact:
+    constraints.append(Piece_Total_Count[allowedNum])
+  else:
+    allowedPieces = true.negate()
+    for i in range(allowedNum):
+      allowedPieces |= Piece_Total_Count[i]
+    constraints.append(allowedPieces)
   return constraints
-
 
 # function for generating a list of constraints that is everything we need to determine if there are multiple kings
 # theoretically without this a person could create a board configuration with multiple black kings on it, which is not
@@ -399,15 +386,15 @@ def addConstraints(encoding, constraints):
 def Theory():
   E = Encoding()
 
-  E = addConstraints(E, singleKing())
+  #E = addConstraints(E, singleKing())
 
-  E = addConstraints(E, King_Edge_Potential_Moves())
+  #E = addConstraints(E, King_Edge_Potential_Moves())
 
-  E = addConstraints(E, spaceOccupied())
+  #E = addConstraints(E, spaceOccupied())
 
   #E.add_constraint(White_Potential_Movement(i, j, board[i][j]))
 
-  E = addConstraints(E, limitNumberPieces([WQ_Row, WQ_Column], WQ_Space_Occupied, 2))
+  E = addConstraints(E, limitNumberPieces(WQ_Space_Occupied, WQ_Count, WQ_Total_Count, 36, True))
 
 
   # Can't be in both checkmate and stalemate
@@ -427,9 +414,8 @@ def Theory():
 
 if __name__ == "__main__":
     T = Theory()
-
-    #If we want to add an initial board setting you need:
-    T.add_constraint(parse_board(example_board))
+    # If we want to add an initial board setting you need:
+    #T.add_constraint(parse_board(example_board))
 
     solution = T.solve()
     #print(solution)

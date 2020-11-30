@@ -14,6 +14,20 @@ from lib204 import Encoding
 
 BOARD_SIZE = 8
 
+#build up arrays used to count how many of a piece there are
+def count_builder(name):
+  Count = []
+  for i in range(BOARD_SIZE**2):
+    Count.append([])
+    for j in range((BOARD_SIZE**2)+1):
+      Count[i].append(Var(f'{name}_count_by_{i}_is_{j}'))
+
+  Total_Count = []
+  for i in range(BOARD_SIZE**2+1):
+    Total_Count.append(Var(f'{name}_total_is_{i}'))
+  return Count, Total_Count
+
+
 # Space occupied in general
 Space_Occupied = []
 
@@ -23,15 +37,7 @@ BK_Potential_Moves = []
 
 #White queen stuff
 WQ_Space_Occupied = []
-WQ_Count = []
-for i in range((BOARD_SIZE**2)+1):
-  WQ_Count.append([])
-  for j in range((BOARD_SIZE**2)+1):
-    WQ_Count[i].append(Var(f'WQ_count_by_{i}_is_{j}'))
-
-WQ_Total_Count = []
-for i in range(BOARD_SIZE**2+1):
-  WQ_Total_Count.append(Var(f'WQ_total_is_{i}'))
+WQ_Count, WQ_Total_Count = count_builder("WQ")
 
 #White pawn stuff
 WP_Space_Occupied = []

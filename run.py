@@ -178,7 +178,7 @@ def outerBound():
 def rook_move(i, j):
   f = true
   k = i
-  while k > 0:
+  while (k > 0):
     k-=1
     if Space_Occupied[k][j]:
       f &= White_Potential_Moves[k][j]
@@ -186,7 +186,7 @@ def rook_move(i, j):
     else:
       f &= White_Potential_Moves[k][j]
   k = i
-  while k < BOARD_SIZE-1:
+  while k < (BOARD_SIZE-1):
     k+=1
     if Space_Occupied[k][j]:
       f &= White_Potential_Moves[k][j]
@@ -194,7 +194,7 @@ def rook_move(i, j):
     else:
       f &= White_Potential_Moves[k][j]
   k = j
-  while k > 0:
+  while (k > 0):
     k-=1
     if Space_Occupied[i][k]:
       f &= White_Potential_Moves[i][k]
@@ -202,7 +202,7 @@ def rook_move(i, j):
     else:
       f &= White_Potential_Moves[i][k]
   k = j
-  while k < BOARD_SIZE-1:
+  while k < (BOARD_SIZE-1):
     k+=1
     if Space_Occupied[i][k]:
       f &= White_Potential_Moves[i][k]
@@ -215,7 +215,7 @@ def bishop_move(i, j):
   f = true
   k = i
   l = j
-  while k > 0 & l > 0:
+  while (k > 0) & (l > 0):
     k-=1
     l-=1
     if Space_Occupied[k][l]:
@@ -235,7 +235,7 @@ def bishop_move(i, j):
       f &= White_Potential_Moves[k][l]
   k = i
   l = j
-  while k < BOARD_SIZE-1 & l > 0:
+  while (k < BOARD_SIZE-1) & (l > 0):
     k+=1
     l-=1
     if Space_Occupied[k][l]:
@@ -245,7 +245,7 @@ def bishop_move(i, j):
       f &= White_Potential_Moves[k][l]
   k = i
   l = j
-  while k < BOARD_SIZE-1 & l < BOARD_SIZE-1:
+  while (k < BOARD_SIZE-1) & (l < BOARD_SIZE-1):
     k+=1
     l+=1
     if Space_Occupied[k][l]:
@@ -383,12 +383,12 @@ def BK_Potential_Moves():
       constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j+1]).negate() | ~BK_Moves[2])
       constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j-1]).negate() | ~BK_Moves[5])
       constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j+1]).negate() | ~BK_Moves[7])
-  
+
   # if all of BK_Moves[i] are false, then BK_No_Moves is true and vise versa (iff)
   availableMoves = true.negate()
   for i in range(8): # can be constant of 8 because the BK can only move 8 ways regardless of board size
     availableMoves |= BK_Moves[i]
-  
+
   constraints.append(iff(availableMoves, ~BK_No_Moves))
 
   return constraints

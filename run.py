@@ -283,7 +283,7 @@ def spaceOccupied():
 # If exact is true, then must have exactly "allowedNum" number of pieces on the board. If exact is false,
 # can have up to and including "allowedNum" number of pieces on the board.
 def limitNumberPieces(Piece_Space_Occupied, Piece_Count, Piece_Total_Count, allowedNum, exact = False):
-  if allowedNum > BOARD_SIZE**2 & exact:
+  if (allowedNum > BOARD_SIZE**2) & exact:
     raise ValueError("Can't have more pieces than you have sqaures on the board")
   # The code below was very heavily inspired (read: I rewrote it using our variable names) from the code provided by Prof. Muise.
 

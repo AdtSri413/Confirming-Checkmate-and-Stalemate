@@ -180,28 +180,32 @@ def rook_move(i, j):
   k = i
   while k >= 0:
     k-=1
-    if not Space_Occupied[k][j]:
+    if Space_Occupied[k][j]:
+      f &= White_Potential_Moves[k][j]
       break
     else:
       f &= White_Potential_Moves[k][j]
   k = i
   while k <= BOARD_SIZE:
     k+=1
-    if not Space_Occupied[k][j]:
+    if Space_Occupied[k][j]:
+      f &= White_Potential_Moves[k][j]
       break
     else:
       f &= White_Potential_Moves[k][j]
   k = j
   while k >= 0:
     k-=1
-    if not Space_Occupied[i][k]:
+    if Space_Occupied[i][k]:
+      f &= White_Potential_Moves[i][k]
       break
     else:
       f &= White_Potential_Moves[i][k]
   k = j
   while k <= BOARD_SIZE:
     k+=1
-    if not Space_Occupied[i][k]:
+    if Space_Occupied[i][k]:
+      f &= White_Potential_Moves[i][k]
       break
     else:
       f &= White_Potential_Moves[i][k]
@@ -214,37 +218,41 @@ def bishop_move(i, j):
   while k >= 0 & l >= 0:
     k-=1
     l-=1
-    if not Space_Occupied[k][l]:
+    if Space_Occupied[k][l]:
+      f &= White_Potential_Moves[k][l]
       break
     else:
-      f &= White_Potential_Moves[k][j]
+      f &= White_Potential_Moves[k][l]
   k = i
   l = j
   while k >= 0 & l <= BOARD_SIZE:
     k-=1
     l+=1
-    if not Space_Occupied[i][k]:
+    if Space_Occupied[k][l]:
+      f &= White_Potential_Moves[k][l]
       break
     else:
-      f &= White_Potential_Moves[i][k]
+      f &= White_Potential_Moves[k][l]
   k = i
   l = j
   while k <= BOARD_SIZE & l >= 0:
     k+=1
     l-=1
-    if not Space_Occupied[i][k]:
+    if Space_Occupied[k][l]:
+      f &= White_Potential_Moves[k][l]
       break
     else:
-      f &= White_Potential_Moves[i][k]
+      f &= White_Potential_Moves[k][l]
   k = i
   l = j
   while k <= BOARD_SIZE & l <= BOARD_SIZE:
     k+=1
     l+=1
-    if not Space_Occupied[i][k]:
+    if Space_Occupied[k][l]:
+      f &= White_Potential_Moves[k][l]
       break
     else:
-      f &= White_Potential_Moves[i][k]
+      f &= White_Potential_Moves[k][l]
 
 
               # for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
@@ -328,12 +336,12 @@ def limitNumberPieces(Piece_Space_Occupied, Piece_Count, Piece_Total_Count, allo
   # for whatever count is true when it gets to the end of the board, the corresponding Total_Count should relate to that.
   for i in range(BOARD_SIZE**2+1):
     constraints.append(iff(Piece_Total_Count[i], Piece_Count[(BOARD_SIZE**2)-1][i]))
-  
+
   # restricting any time that it won't claim there are more pieces than spaces that have been checked
   for i in range(BOARD_SIZE**2):
     for j in range(i+2, (BOARD_SIZE**2)+1):
       constraints.append(~Piece_Count[i][j])
-  
+
   # the first board value will be true of there is a white queen there, false if there isn't
   constraints.append(iff(Piece_Count[0][0], ~Piece_Space_Occupied[0][0]))
   constraints.append(iff(Piece_Count[0][1], Piece_Space_Occupied[0][0]))
@@ -350,7 +358,7 @@ def limitNumberPieces(Piece_Space_Occupied, Piece_Count, Piece_Total_Count, allo
       increase = Piece_Count[i-1][j-1] & Piece_Space_Occupied[i1][i2]
       constant = Piece_Count[i-1][j] & ~Piece_Space_Occupied[i1][i2]
       constraints.append(iff(Piece_Count[i][j], increase | constant))
-  
+
   # Additional part to use the "allowedNum" and "extra" to make sure there are the right number of pieces
   if exact:
     constraints.append(Piece_Total_Count[allowedNum])

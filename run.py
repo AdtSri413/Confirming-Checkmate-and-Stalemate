@@ -34,6 +34,7 @@ Space_Occupied = []
 #Black king stuff
 BK_Space_Occupied = []
 BK_Potential_Moves = []
+BK_Count, BK_Total_Count = count_builder("BK")
 
 #White queen stuff
 WQ_Space_Occupied = []
@@ -324,34 +325,6 @@ def limitNumberPieces(Piece_Space_Occupied, Piece_Count, Piece_Total_Count, allo
     constraints.append(allowedPieces)
   return constraints
 
-# function for generating a list of constraints that is everything we need to determine if there are multiple kings
-# theoretically without this a person could create a board configuration with multiple black kings on it, which is not
-# exactly within the rule set of chess
-def singleKing():
-  constraints = []
-  oneKing = true.negate()
-  for i in range(BOARD_SIZE):
-    for j in range(BOARD_SIZE):
-
-      #BK_Space_Occupied[i][j] -> all other BK_Space_Occupied values are FALSE (ie ~BK_Space_Occupied[x][y])
-      allOtherSpaces = true
-      for add1 in range(0,BOARD_SIZE):
-        for add2 in range(0,BOARD_SIZE):
-          # need to add the constraints for every square other than the (i,j) square
-          if (not ( ((i + add1) % BOARD_SIZE == i) and ((j + add2) % BOARD_SIZE == j))):
-            # We are creating a series of 'and's chained together. the chain will have the value for each
-            # and every square other than the square
-            allOtherSpaces &= ~BK_Space_Occupied[(i + add1) % BOARD_SIZE][(j + add2) % BOARD_SIZE]
-
-      newConstraint =  ~BK_Space_Occupied[i][j] | (allOtherSpaces)
-      constraints.append(newConstraint)
-
-      #Slowely build up the last constraint needed, to make sure there is at least one black king
-      oneKing |= BK_Space_Occupied[i][j]
-  # add the constraint of eensuring there is at least one king
-  constraints.append(oneKing)
-  return constraints
-
 def King_Edge_Potential_Moves():
   constraints = []
   for i in range(BOARD_SIZE):
@@ -393,13 +366,13 @@ def addConstraints(encoding, constraints):
 def Theory():
   E = Encoding()
 
-  #E = addConstraints(E, singleKing())
-
   #E = addConstraints(E, King_Edge_Potential_Moves())
 
   #E = addConstraints(E, spaceOccupied())
 
   #E.add_constraint(White_Potential_Movement(i, j, board[i][j]))
+
+  E = addConstraints(E, limitNumberPieces(BK_Space_Occupied, BK_Count, BK_Total_Count, 1, True))
 
   E = addConstraints(E, limitNumberPieces(WQ_Space_Occupied, WQ_Count, WQ_Total_Count, 36, True))
 

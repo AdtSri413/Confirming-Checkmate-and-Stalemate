@@ -178,7 +178,7 @@ def outerBound():
 def rook_move(i, j):
   f = true
   k = i
-  while k >= 0:
+  while k > 0:
     k-=1
     if Space_Occupied[k][j]:
       f &= White_Potential_Moves[k][j]
@@ -186,7 +186,7 @@ def rook_move(i, j):
     else:
       f &= White_Potential_Moves[k][j]
   k = i
-  while k <= BOARD_SIZE:
+  while k < BOARD_SIZE-1:
     k+=1
     if Space_Occupied[k][j]:
       f &= White_Potential_Moves[k][j]
@@ -194,7 +194,7 @@ def rook_move(i, j):
     else:
       f &= White_Potential_Moves[k][j]
   k = j
-  while k >= 0:
+  while k > 0:
     k-=1
     if Space_Occupied[i][k]:
       f &= White_Potential_Moves[i][k]
@@ -202,7 +202,7 @@ def rook_move(i, j):
     else:
       f &= White_Potential_Moves[i][k]
   k = j
-  while k <= BOARD_SIZE:
+  while k < BOARD_SIZE-1:
     k+=1
     if Space_Occupied[i][k]:
       f &= White_Potential_Moves[i][k]
@@ -215,7 +215,7 @@ def bishop_move(i, j):
   f = true
   k = i
   l = j
-  while k >= 0 & l >= 0:
+  while k > 0 & l > 0:
     k-=1
     l-=1
     if Space_Occupied[k][l]:
@@ -225,7 +225,7 @@ def bishop_move(i, j):
       f &= White_Potential_Moves[k][l]
   k = i
   l = j
-  while k >= 0 & l <= BOARD_SIZE:
+  while (k > 0) & (l < BOARD_SIZE-1):
     k-=1
     l+=1
     if Space_Occupied[k][l]:
@@ -235,7 +235,7 @@ def bishop_move(i, j):
       f &= White_Potential_Moves[k][l]
   k = i
   l = j
-  while k <= BOARD_SIZE & l >= 0:
+  while k < BOARD_SIZE-1 & l > 0:
     k+=1
     l-=1
     if Space_Occupied[k][l]:
@@ -245,7 +245,7 @@ def bishop_move(i, j):
       f &= White_Potential_Moves[k][l]
   k = i
   l = j
-  while k <= BOARD_SIZE & l <= BOARD_SIZE:
+  while k < BOARD_SIZE-1 & l < BOARD_SIZE-1:
     k+=1
     l+=1
     if Space_Occupied[k][l]:
@@ -281,7 +281,7 @@ def White_Potential_Movement(availablePieces):
           queen_spot = WQ_Space_Occupied[i][j]
           queen_take_from_spot = queen_move(i,j)
           # if a queen is at spot [i][j], then it can take everything defined in queen_move(i,j)
-          constraints.append(~queens_spot | queen_take_from_spot)
+          constraints.append(~queen_spot | queen_take_from_spot)
 
     if piece == WP_Space_Occupied:
       for i in range(BOARD_SIZE):
@@ -369,37 +369,27 @@ def limitNumberPieces(Piece_Space_Occupied, Piece_Count, Piece_Total_Count, allo
     constraints.append(allowedPieces)
   return constraints
 
-def King_Potential_Moves():
+def BK_Potential_Moves():
   constraints = []
   for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
-      pass
-      # if a black king is at position (i, j), then: it can move up if white can't move to (i-1,j), etc
-      # constraints.append(~BK_Space_Occupied[i][j] | (BK_Moves[1] & ))
-      # if (i == 0):
-      #   #if i=0, and a king occupies that space, then it cannot move up.
-      #   constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[1])
-      # if (i == BOARD_SIZE):
-      #   #if i= the size of the board, and a king occupies that space, then it cannot move down.
-      #   constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[6])
-      # if (j == 0):
-      #   # if j=0, then a king can't move left
-      #   constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[3])
-      # if (j == BOARD_SIZE):
-      #   # if j= the size of the board, then a king can't move right
-      #   constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[4])
-      # if (j == 0) & (i == 0):
-      #   # can't move up/left
-      #   constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[0])
-      # if (j == 0) & (i == BOARD_SIZE):
-      #   # can't move down/left
-      #   constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[5])
-      # if (j == BOARD_SIZE) & (i == 0):
-      #   # can't move up/right
-      #   constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[2])
-      # if (j == BOARD_SIZE) & (i == BOARD_SIZE):
-      #   # can't move down/right
-      #   constraints.append(~BK_Space_Occupied[i][j] | ~BK_Moves[7])
+      # if a black king is at position (i, j) and there is a white piece able to move to (i-1,j), then the king can't move up, etc
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j]).negate() | ~BK_Moves[1])
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j]).negate() | ~BK_Moves[6])
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i][j-1]).negate() | ~BK_Moves[3])
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i][j+1]).negate() | ~BK_Moves[4])
+
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j-1]).negate() | ~BK_Moves[0])
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j+1]).negate() | ~BK_Moves[2])
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j-1]).negate() | ~BK_Moves[5])
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j+1]).negate() | ~BK_Moves[7])
+  
+  # if all of BK_Moves[i] are false, then BK_No_Moves is true and vise versa (iff)
+  availableMoves = true.negate()
+  for i in range(8): # can be constant of 8 because the BK can only move 8 ways regardless of board size
+    availableMoves |= BK_Moves[i]
+  
+  constraints.append(iff(availableMoves, ~BK_No_Moves))
 
   return constraints
 
@@ -413,13 +403,13 @@ def addConstraints(encoding, constraints):
 def Theory():
   E = Encoding()
 
-  #E = addConstraints(E, King_Edge_Potential_Moves())
+  E = addConstraints(E, BK_Potential_Moves())
 
   E = addConstraints(E, spaceOccupied())
 
   E = addConstraints(E, outerBound())
 
-  #E.add_constraint(White_Potential_Movement(i, j, board[i][j]))
+  E.add_constraint(White_Potential_Movement([WQ_Space_Occupied,WP_Space_Occupied]))
 
   E = addConstraints(E, limitNumberPieces(BK_Space_Occupied, BK_Count, BK_Total_Count, 1, True))
 
@@ -427,17 +417,17 @@ def Theory():
 
 
   # Can't be in both checkmate and stalemate
-  #E.add_constraint(iff(Checkmate, ~Stalemate))
+  E.add_constraint(iff(Checkmate, ~Stalemate))
 
   # iff BK_No_Moves (ie the king has no valid moves), the game is either in checkmate or stalemate. pretty obvious
   # this will change if we add other pieces to the black side that are able to move, where we will also have to check
   # if the other peices are unable to move
-  #E.add_constraint(iff(BK_No_Moves, Checkmate | Stalemate))
+  E.add_constraint(iff(BK_No_Moves, Checkmate | Stalemate))
 
   # if the king is in check, and doesn't have moves, then it is in checkmate. This will narrow the models down from the
   # previous constraint, which only simplified it to either checkmate or stalemate. now we know which one.
   # might be a more efficient way to do this, but this makes more sense in my head, so it's the way I'm doing it.
-  #E.add_constraint(iff(Check & BK_No_Moves, Checkmate))
+  E.add_constraint(iff(Check & BK_No_Moves, Checkmate))
 
   return E
 

@@ -48,8 +48,6 @@ White_Potential_Moves = []
 
 # Creatting the massive arrays of initialized variables needed for the movements/positions of peices.
 
-# IDEA: instead of stuff like WQ_Potential_Moves, maybe just make one set of variables called "White_Potential_Moves". Because it
-# Really doesn't matter which piece can move where, just that a specific square is 'in danger' by some piece.
 for i in range(BOARD_SIZE):
     BK_Space_Occupied.append([])
     WQ_Space_Occupied.append([])
@@ -77,14 +75,14 @@ BK_Moves = []
 for i in range(1,10):
   if (i != 5) & (i != 0):
     BK_Moves.append(Var(f'BK_Move_{i}'))
-# BK_Move_1 = Var('BK_Move_1') # up-left
-# BK_Move_2 = Var('BK_Move_2') # up
-# BK_Move_3 = Var('BK_Move_3') # up-right
-# BK_Move_4 = Var('BK_Move_4') # left
-# BK_Move_6 = Var('BK_Move_6') # right
-# BK_Move_7 = Var('BK_Move_7') # down-left
-# BK_Move_8 = Var('BK_Move_8') # down
-# BK_Move_9 = Var('BK_Move_9') # down-right
+# BK_Move_1 = Var('BK_Move_1') # up-left    0
+# BK_Move_2 = Var('BK_Move_2') # up         1
+# BK_Move_3 = Var('BK_Move_3') # up-right   2
+# BK_Move_4 = Var('BK_Move_4') # left       3
+# BK_Move_6 = Var('BK_Move_6') # right      4
+# BK_Move_7 = Var('BK_Move_7') # down-left  5
+# BK_Move_8 = Var('BK_Move_8') # down       6
+# BK_Move_9 = Var('BK_Move_9') # down-right 7
 BK_No_Moves = Var('Bk_No_Moves') # true if the black king has no moves (IE everything above is false)
 
 Check = Var('Check')
@@ -104,8 +102,9 @@ example_board = [["BK",0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,"WQ"]]
 
 # example_board = [
-#   [0,0],
-#   [0,"WQ"]
+#   [0,0,0],
+#   [0,"WQ",0],
+#   ["BK",0,0]
 # ]
 
 # function for setting the initial board configuration. ALL it will do is set
@@ -426,7 +425,7 @@ def BK_Potential_Moves():
   constraints = []
   for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
-      # if a black king is at position (i, j) and there is a white piece able to move to (i-1,j), then the king can't move up, etc
+      # if a black king is at position (i, j) and there is a white piece able to move to (i-1,j), then the king can't move up
       constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j]).negate() | ~BK_Moves[1])
       constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j]).negate() | ~BK_Moves[6])
       constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i][j-1]).negate() | ~BK_Moves[3])

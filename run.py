@@ -92,14 +92,14 @@ Stalemate = Var('Stalemate')
 Checkmate = Var('Checkmate')
 
 # example board config
-example_board = [["BK",0,0,0,0,0,0,0],
+example_board = [[0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0],
+[0,0,0,"BK",0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,"WQ",0,0],
-[0,0,0,0,0,0,"WQ",0],
-[0,0,0,0,0,0,0,"WQ"]]
+[0,"WQ",0,"WQ",0,0,0,0],
+[0,0,0,"WQ",0,0,0,0]]
 
 # example_board = [
 #   [0,0,0],
@@ -142,6 +142,10 @@ def parse_solution(solution):
     return board
   #replace the 0's with pieces as needed
   for key, value in solution.items():
+    if (key == "Checkmate") & value:
+      print("Checkmate!!")
+    if (key == "Stalemate") & value:
+      print("Stalemate!!!")
     if (key[:-3] == 'BK_Occupied_') & value:
       board[int(key[-3])][int(key[-1])] = "BK"
     if (key[:-3] == 'WQ_Occupied_') & value:
@@ -174,84 +178,84 @@ def outerBound():
         constraints.append(White_Potential_Moves[i][j])
   return constraints
 
-def rook_move(i, j):
-  f = true
+def rook_move(i, j, goal_i, goal_j):
+  f = true.negate()
   k = i
-  while (k > 0):
+  while (k > 0) & (j == goal_j):
     k-=1
-    if Space_Occupied[k][j]:
-      f &= White_Potential_Moves[k][j]
-      break
-    else:
-      f &= White_Potential_Moves[k][j]
+    if (k == goal_i) & (j == goal_j):
+      f = true
+      for between in range(i-1,goal_i,-1):
+        f &= (~Space_Occupied[between][j] | BK_Space_Occupied[between][j])
+      return f
   k = i
+  while k < (BOARD_SIZE-1) & (j == goal_j):
+    k+=1
+    if (k == goal_i) & (j == goal_j):
+      f = true
+      for between in range(i+1,goal_i):
+        f &= (~Space_Occupied[between][j] | BK_Space_Occupied[between][j])
+      return f
+  k = j
+  while (k > 0)& (i == goal_i):
+    k-=1
+    if (i == goal_i) & (k == goal_j):
+      f = true
+      for between in range(i-1,goal_i,-1):
+        f &= (~Space_Occupied[i][between] | BK_Space_Occupied[i][between])
+      return f
+  k = j
   while k < (BOARD_SIZE-1):
     k+=1
-    if Space_Occupied[k][j]:
-      f &= White_Potential_Moves[k][j]
-      break
-    else:
-      f &= White_Potential_Moves[k][j]
-  k = j
-  while (k > 0):
-    k-=1
-    if Space_Occupied[i][k]:
-      f &= White_Potential_Moves[i][k]
-      break
-    else:
-      f &= White_Potential_Moves[i][k]
-  k = j
-  while k < (BOARD_SIZE-1):
-    k+=1
-    if Space_Occupied[i][k]:
-      f &= White_Potential_Moves[i][k]
-      break
-    else:
-      f &= White_Potential_Moves[i][k]
+    if (i == goal_i) & (k == goal_j):
+      f = true
+      for between in range(i+1,goal_i):
+        f &= (~Space_Occupied[i][between] | BK_Space_Occupied[i][between])
+      return f
   return f
 
-def bishop_move(i, j):
-  f = true
+def bishop_move(i, j, goal_i, goal_j):
+  f = true.negate()
   k = i
   l = j
   while (k > 0) & (l > 0):
     k-=1
     l-=1
-    if Space_Occupied[k][l]:
-      f &= White_Potential_Moves[k][l]
-      break
-    else:
-      f &= White_Potential_Moves[k][l]
+    if (k == goal_i) & (l == goal_j):
+      f = true
+      for between in range(1,i-k):
+        f &= (~Space_Occupied[i-between][j-between] | BK_Space_Occupied[i-between][j-between])
+      return f
   k = i
   l = j
   while (k > 0) & (l < BOARD_SIZE-1):
     k-=1
     l+=1
-    if Space_Occupied[k][l]:
-      f &= White_Potential_Moves[k][l]
-      break
-    else:
-      f &= White_Potential_Moves[k][l]
+    if (k == goal_i) & (l == goal_j):
+      f = true
+      for between in range(1,i-k):
+        f &= (~Space_Occupied[i-between][j+between] | BK_Space_Occupied[i-between][j+between])
+      return f
   k = i
   l = j
   while (k < BOARD_SIZE-1) & (l > 0):
     k+=1
     l-=1
-    if Space_Occupied[k][l]:
-      f &= White_Potential_Moves[k][l]
-      break
-    else:
-      f &= White_Potential_Moves[k][l]
+    if (k == goal_i) & (l == goal_j):
+      f = true
+      for between in range(1,i-k):
+        f &= (~Space_Occupied[i+between][j-between] | BK_Space_Occupied[i+between][j-between])
+      return f
   k = i
   l = j
   while (k < BOARD_SIZE-1) & (l < BOARD_SIZE-1):
     k+=1
     l+=1
-    if Space_Occupied[k][l]:
-      f &= White_Potential_Moves[k][l]
-      break
-    else:
-      f &= White_Potential_Moves[k][l]
+    if (k == goal_i) & (l == goal_j):
+      f = true
+      for between in range(1,i-k):
+        f &= (~Space_Occupied[i+between][j+between] | BK_Space_Occupied[i+between][j+between])
+      return f
 
 
               # for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
@@ -263,10 +267,10 @@ def bishop_move(i, j):
 
   return f
 
-def queen_move(i,j):
-  horizontal_takes = rook_move(i,j)
-  vertical_takes = bishop_move(i,j)
-  return horizontal_takes & vertical_takes
+def queen_move(i,j, i_goal, j_goal):
+  horizontal_takes = rook_move(i,j, i_goal, j_goal)
+  vertical_takes = bishop_move(i,j, i_goal, j_goal)
+  return horizontal_takes | vertical_takes
 
 def knight_move(i, j):
   f = true
@@ -278,7 +282,7 @@ def knight_move(i, j):
       if ((j+1) < (BOARD_SIZE-1)):
           f &= White_Potential_Moves[i-2][j+1]
   #Right
-  if ((i+2) < (BOARD_SIZE-1):
+  if ((i+2) < (BOARD_SIZE-1)):
       if ((j-1) > 0):
           f &= White_Potential_Moves[i+2][j-1]
       if ((j+1) < (BOARD_SIZE-1)):
@@ -290,7 +294,7 @@ def knight_move(i, j):
       if ((i+1) < (BOARD_SIZE-1)):
           f &= White_Potential_Moves[i+1][j-2]
   #backwards
-  if ((j+2) < (BOARD_SIZE-1):
+  if ((j+2) < (BOARD_SIZE-1)):
       if ((i-1) > 0):
           f &= White_Potential_Moves[i-1][j+2]
       if ((i+1) < (BOARD_SIZE-1)):
@@ -303,7 +307,7 @@ def knight_move(i, j):
       if ((j+2) < (BOARD_SIZE-1)):
           f &= White_Potential_Moves[i-1][j+2]
   #Right
-  if ((i+1) < (BOARD_SIZE-1):
+  if ((i+1) < (BOARD_SIZE-1)):
       if ((j-2) > 0):
           f &= White_Potential_Moves[i+1][j-2]
       if ((j+2) < (BOARD_SIZE-1)):
@@ -315,7 +319,7 @@ def knight_move(i, j):
       if ((i+2) < (BOARD_SIZE-1)):
           f &= White_Potential_Moves[i+2][j-1]
   #backwards
-  if ((j+1) < (BOARD_SIZE-1):
+  if ((j+1) < (BOARD_SIZE-1)):
       if ((i-2) > 0):
           f &= White_Potential_Moves[i-2][j+1]
       if ((i+2) < (BOARD_SIZE-1)):
@@ -323,33 +327,36 @@ def knight_move(i, j):
 
 def White_Potential_Movement(availablePieces):
   constraints = []
-  for piece in availablePieces:
-    if piece == WQ_Space_Occupied:
-      for i in range(BOARD_SIZE):
-        for j in range(BOARD_SIZE):
-          #adds threat squares to each row and column the queen occupies
-          #loops break upon encountering a blocking piece, terminating the threat line
-          #cardinal directions
-          queen_spot = WQ_Space_Occupied[i][j]
-          queen_take_from_spot = queen_move(i,j)
-          # if a queen is at spot [i][j], then it can take everything defined in queen_move(i,j)
-          constraints.append(~queen_spot | queen_take_from_spot)
+  for i in range(BOARD_SIZE):
+    for j in range(BOARD_SIZE):
+      importantSpot = White_Potential_Moves[i][j]
+      f = true.negate()
+      for piece in availablePieces:
+        if piece == WQ_Space_Occupied:
+          for i2 in range(BOARD_SIZE):
+            for j2 in range(BOARD_SIZE):
+              queen_spot = WQ_Space_Occupied[i2][j2]
+              queen_can_take_i_j = queen_move(i2,j2, i ,j)
+              f |= (queen_spot & queen_can_take_i_j)
 
-    if piece == WP_Space_Occupied:
-      for i in range(BOARD_SIZE):
-        for j in range(BOARD_SIZE):
-          pawn_at = WP_Space_Occupied[i][j]
-          pawn_take = true
-          #Implemented edge checking
-          if i==0:
-            pawn_take &= White_Potential_Moves[i+1][j-1]
-          elif i==BOARD_SIZE-1:
-            pawn_take &= White_Potential_Moves[i-1][j-1]
-          elif j!=0:
-            pawn_take &= White_Potential_Moves[i-1][j-1]
-            pawn_take &= White_Potential_Moves[i+1][j-1]
-          # if a pawn is at spot [i][j], then it can take everything defined just above for pawn_take
-          constraints.append(~pawn_at | pawn_take)
+      #if (a piece at some location can capture a piece at (i,j)) then White_Potential_Moves[i][j] is true
+      constraints.append(iff(importantSpot, f))
+
+        # if piece == WP_Space_Occupied:
+        #   for i in range(BOARD_SIZE):
+        #     for j in range(BOARD_SIZE):
+        #       pawn_at = WP_Space_Occupied[i][j]
+        #       pawn_take = true
+        #       #Implemented edge checking
+        #       if i==0:
+        #         pawn_take &= White_Potential_Moves[i+1][j-1]
+        #       elif i==BOARD_SIZE-1:
+        #         pawn_take &= White_Potential_Moves[i-1][j-1]
+        #       elif j!=0:
+        #         pawn_take &= White_Potential_Moves[i-1][j-1]
+        #         pawn_take &= White_Potential_Moves[i+1][j-1]
+        #       # if a pawn is at spot [i][j], then it can take everything defined just above for pawn_take
+        #       constraints.append(~pawn_at | pawn_take)
   return constraints
 
 #set spaces_occupied for a space as true if there is a piece on it
@@ -362,6 +369,7 @@ def spaceOccupied():
       #WQ_Space_Occupied[i][j] -> Space_Occupied[i][j]
       constraints.append(~WQ_Space_Occupied[i][j] | Space_Occupied[i][j])
       constraints.append(~WP_Space_Occupied[i][j] | Space_Occupied[i][j])
+      constraints.append( ~Space_Occupied[i][j] |(WP_Space_Occupied[i][j] | WQ_Space_Occupied[i][j] | BK_Space_Occupied[i][j]) )
 
       #add more constraints for occupying spaces as more white pieces are added.
 
@@ -371,7 +379,7 @@ def spaceOccupied():
       constraints.append( (~WQ_Space_Occupied[i][j] | (~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] ) ) )
       constraints.append( (~WP_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] ) ) )
 
-      #add more constraiints for pieces on pieces as pieces are added.
+      #add more constraints for pieces on pieces as pieces are added.
   return constraints
 
 # logic I am implementing right now will limit it to 2 or fewer queens. In the future, expand this
@@ -423,18 +431,36 @@ def limitNumberPieces(Piece_Space_Occupied, Piece_Count, Piece_Total_Count, allo
 
 def BK_Potential_Moves():
   constraints = []
+  allCombined = [true.negate() for i in range(8)]
+  
   for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
       # if a black king is at position (i, j) and there is a white piece able to move to (i-1,j), then the king can't move up
+
       constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j]).negate() | ~BK_Moves[1])
       constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j]).negate() | ~BK_Moves[6])
       constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i][j-1]).negate() | ~BK_Moves[3])
       constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i][j+1]).negate() | ~BK_Moves[4])
 
-      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j-1]).negate() | ~BK_Moves[0])
-      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j+1]).negate() | ~BK_Moves[2])
-      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j-1]).negate() | ~BK_Moves[5])
-      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j+1]).negate() | ~BK_Moves[7])
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j-1]).negate() | ~BK_Moves[0])
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j+1]).negate() | ~BK_Moves[2])
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j-1]).negate() | ~BK_Moves[5])
+      constraints.append( (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j+1]).negate() | ~BK_Moves[7])
+
+      allCombined[1] |= (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j])
+      allCombined[6] |= (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j])
+      allCombined[3] |= (BK_Space_Occupied[i][j] & White_Potential_Moves[i][j-1])
+      allCombined[4] |= (BK_Space_Occupied[i][j] & White_Potential_Moves[i][j+1])
+
+      allCombined[0] |= (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j-1])
+      allCombined[2] |= (BK_Space_Occupied[i][j] & White_Potential_Moves[i-1][j+1])
+      allCombined[5] |= (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j-1])
+      allCombined[7] |= (BK_Space_Occupied[i][j] & White_Potential_Moves[i+1][j+1])
+  for i in range(8):
+    #if all of the combined things are false, then BK_Moves for that one MUST be true
+    right = allCombined[i].negate()
+    left = BK_Moves[i]
+    constraints.append(right.negate() | left) 
 
   # if all of BK_Moves[i] are false, then BK_No_Moves is true and vise versa (iff)
   availableMoves = true.negate()
@@ -461,7 +487,7 @@ def Theory():
 
   E = addConstraints(E, outerBound())
 
-  E.add_constraint(White_Potential_Movement([WQ_Space_Occupied,WP_Space_Occupied]))
+  E = addConstraints(E, White_Potential_Movement([WQ_Space_Occupied]))
 
   E = addConstraints(E, limitNumberPieces(BK_Space_Occupied, BK_Count, BK_Total_Count, 1, True))
 
@@ -480,12 +506,20 @@ def Theory():
   # might be a more efficient way to do this, but this makes more sense in my head, so it's the way I'm doing it.
   E.add_constraint(iff(Check & BK_No_Moves, Checkmate))
 
+  #Seeing if the king is in check
+  for i in range(BOARD_SIZE):
+    for j in range(BOARD_SIZE):
+      # if BK is at (i,j) and White can move to (i,j), then check (iff)
+      left = (BK_Space_Occupied[i][j] & White_Potential_Moves[i][j])
+      right = Check
+      E.add_constraint(left.negate() | right)
+
   return E
 
 if __name__ == "__main__":
     T = Theory()
     # If we want to add an initial board setting you need:
-    #T.add_constraint(parse_board(example_board))
+    T.add_constraint(parse_board(example_board))
 
     solution = T.solve()
     #print(solution)

@@ -44,6 +44,10 @@ WQ_Count, WQ_Total_Count = count_builder("WQ")
 WP_Space_Occupied = []
 WP_Count, WP_Total_Count = count_builder("WP")
 
+#White rook stuff
+WR_Space_Occupied = []
+WR_Count, WR_Total_Count = count_builder("WR")
+
 #White Potential Moves
 White_Potential_Moves = []
 
@@ -53,12 +57,14 @@ for i in range(BOARD_SIZE):
     BK_Space_Occupied.append([])
     WQ_Space_Occupied.append([])
     WP_Space_Occupied.append([])
+    WR_Space_Occupied.append([])
     Space_Occupied.append([])
     White_Potential_Moves.append([])
     for j in range(BOARD_SIZE):
         BK_Space_Occupied[i].append(Var(f'BK_Occupied_{i},{j}'))
         WQ_Space_Occupied[i].append(Var(f'WQ_Occupied_{i},{j}'))
         WP_Space_Occupied[i].append(Var(f'WP_Occupied_{i},{j}'))
+        WR_Space_Occupied[i].append(Var(f'WR_Occupied_{i},{j}'))
         Space_Occupied[i].append(Var(f'Space_Occupied_{i},{j}'))
         White_Potential_Moves[i].append(Var(f'White_Potential_Moves{i},{j}'))
         if j == BOARD_SIZE-1:
@@ -158,6 +164,8 @@ def parse_solution(solution):
       board[int(key[-3])][int(key[-1])] = "WQ"
     if (key[:-3] == 'WP_Occupied_') & value:
       board[int(key[-3])][int(key[-1])] = "WP"
+    if (key[:-3] == 'WR_Occupied_') & value:
+      board[int(key[-3])][int(key[-1])] = "WR"
   print(x)
 
   #Below is code to also return where white can move. Comment it out when not needed, but it is useful for comparisons
@@ -373,6 +381,12 @@ def White_Potential_Movement(availablePieces):
               if (i2 == i-1) & ((j2 ==j-1) | (j2 == j+1)):
                 pawn_at = WP_Space_Occupied[i2][j2]
                 f |= pawn_at
+            if piece == WR_Space_Occupied:
+              #rooks can only move up/down and left/right, so i2 must equal i, OR j2 must equal j for me to even consider it
+              if (i2 == i) | (j2 == j):
+                rook_at = WR_Space_Occupied[i2][j2]
+                rook_can_take_i_j = rook_move(i2,j2,i,j)
+                f |= (rook_at & rook_can_take_i_j)
 
       #if (a piece at some location can capture a piece at (i,j)) then White_Potential_Moves[i][j] is true
       constraints.append(iff(importantSpot, f))
@@ -383,23 +397,22 @@ def spaceOccupied():
   constraints = []
   for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
-      #BK_Space_Occupied[i][j] -> Space_Occupied[i][j]
-      constraints.append(~BK_Space_Occupied[i][j] | Space_Occupied[i][j])
-      #WQ_Space_Occupied[i][j] -> Space_Occupied[i][j]
-      constraints.append(~WQ_Space_Occupied[i][j] | Space_Occupied[i][j])
-      constraints.append(~WP_Space_Occupied[i][j] | Space_Occupied[i][j])
+      # if Space_Occupied[i][j] is true, that means that at at least of of the _Space_Occupied[i][j]'s must be true.
+      # if Space_Occupied[i][j] is false, then all of the _Space_Occupied[i][j]'s must be false
+      # Handling to maake sure only 1 of the _Space_Occupied[i][j]'s is true is done below
       right = Space_Occupied[i][j]
       #need to expand this as new pieces are added
-      left = (WP_Space_Occupied[i][j] | WQ_Space_Occupied[i][j] | BK_Space_Occupied[i][j])
+      left = (WP_Space_Occupied[i][j] | WQ_Space_Occupied[i][j] | BK_Space_Occupied[i][j] | WR_Space_Occupied[i][j] )
       constraints.append(iff(right, left))
 
       #add more constraints for occupying spaces as more white pieces are added.
 
       # Also here we will make sure there is only 1 piece per square.
       # (BK_Space_Occupied[i][j] -> ~WQ_Space_Occupied[i][j]) as well as (WQ_Space_Occupied[i][j] -> ~BK_Space_Occupied[i][j])
-      constraints.append( (~BK_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] ) ) )
-      constraints.append( (~WQ_Space_Occupied[i][j] | (~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] ) ) )
-      constraints.append( (~WP_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] ) ) )
+      constraints.append( (~BK_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j]) ) )
+      constraints.append( (~WQ_Space_Occupied[i][j] | (~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j]) ) )
+      constraints.append( (~WP_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j]) ) )
+      constraints.append( (~WR_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j]) ) )
 
       #add more constraints for pieces on pieces as pieces are added.
   return constraints
@@ -509,19 +522,21 @@ def Theory():
 
   E = addConstraints(E, outerBound())
 
-  E = addConstraints(E, White_Potential_Movement([WQ_Space_Occupied,WP_Space_Occupied]))
+  E = addConstraints(E, White_Potential_Movement([WQ_Space_Occupied,WP_Space_Occupied, WR_Space_Occupied]))
 
   E = addConstraints(E, limitNumberPieces(BK_Space_Occupied, BK_Count, BK_Total_Count, 1, True))
 
   E = addConstraints(E, limitNumberPieces(WQ_Space_Occupied, WQ_Count, WQ_Total_Count, 0, True))
 
-  E = addConstraints(E, limitNumberPieces(WP_Space_Occupied, WP_Count, WP_Total_Count, 4, True))
+  E = addConstraints(E, limitNumberPieces(WP_Space_Occupied, WP_Count, WP_Total_Count, 0, True))
+
+  E = addConstraints(E, limitNumberPieces(WR_Space_Occupied, WR_Count, WR_Total_Count, 49, True))
 
   # Can't be in both checkmate and stalemate
   E.add_constraint(~Checkmate | ~Stalemate)
   #E.add_constraint(iff(Checkmate, ~Stalemate))
   #E.add_constraint(~Checkmate | Stalemate)
-  E.add_constraint(Checkmate)
+  #E.add_constraint(Stalemate)
   # iff BK_No_Moves (ie the king has no valid moves), the game is either in checkmate or stalemate. pretty obvious
   # this will change if we add other pieces to the black side that are able to move, where we will also have to check
   # if the other peices are unable to move

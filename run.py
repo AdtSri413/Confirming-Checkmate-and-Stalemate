@@ -467,9 +467,8 @@ def Theory():
 
   E = addConstraints(E, limitNumberPieces(WQ_Space_Occupied, WQ_Count, WQ_Total_Count, 4))
 
-
   # Can't be in both checkmate and stalemate
-  E.add_constraint(iff(Checkmate, ~Stalemate))
+  #E.add_constraint(iff(Checkmate, ~Stalemate))
 
   # iff BK_No_Moves (ie the king has no valid moves), the game is either in checkmate or stalemate. pretty obvious
   # this will change if we add other pieces to the black side that are able to move, where we will also have to check

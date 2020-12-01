@@ -42,6 +42,7 @@ WQ_Count, WQ_Total_Count = count_builder("WQ")
 
 #White pawn stuff
 WP_Space_Occupied = []
+WP_Count, WP_Total_Count = count_builder("WP")
 
 #White Potential Moves
 White_Potential_Moves = []
@@ -93,13 +94,13 @@ Checkmate = Var('Checkmate')
 
 # example board config
 example_board = [[0,0,0,0,0,0,0,0],
+["WQ","WQ","WQ","WQ","WQ",0,0,"WQ"],
+[0,0,0,0,"WQ",0,"WQ","WQ"],
+[0,"WQ","WQ","WQ",0,0,"WQ","WQ"],
+["WQ",0,"WQ","WQ",0,"WQ","WQ",0],
+["WQ",0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
-[0,0,0,"BK",0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,"WQ",0,"WQ",0,0,0,0],
-[0,0,0,"WQ",0,0,0,0]]
+[0,0,0,0,0,"BK",0,0]]
 
 # example_board = [
 #   [0,0,0],
@@ -141,7 +142,12 @@ def parse_solution(solution):
     print("No solution")
     return board
   #replace the 0's with pieces as needed
+  x = ''
   for key, value in solution.items():
+    if (key[:7] == "BK_Move"):
+      x += f'{key}: {value}\n'
+    if (key == "Check"):
+      print(f"{key}: {value}")
     if (key == "Checkmate") & value:
       print("Checkmate!!")
     if (key == "Stalemate") & value:
@@ -150,6 +156,25 @@ def parse_solution(solution):
       board[int(key[-3])][int(key[-1])] = "BK"
     if (key[:-3] == 'WQ_Occupied_') & value:
       board[int(key[-3])][int(key[-1])] = "WQ"
+    if (key[:-3] == 'WP_Occupied_') & value:
+      board[int(key[-3])][int(key[-1])] = "WP"
+  print(x)
+
+  #Below is code to also return where white can move. Comment it out when not needed, but it is useful for comparisons
+  # board2 = [
+  #   [0 for i in range(BOARD_SIZE)] for i in range(BOARD_SIZE)
+  # ]
+  # if solution == None:
+  #   print("No solution")
+  #   return board2
+  # #replace the 0's with pieces as needed
+  # for key, value in solution.items():
+  #   if (key[:-3] == 'White_Potential_Moves') & value:
+  #     if (int(key[-3]) < 8) & (int(key[-1]) < 8):
+  #       board2[int(key[-3])][int(key[-1])] = "WT"
+  # return board, board2
+
+
   return board
 
 def draw_board(board):
@@ -189,7 +214,7 @@ def rook_move(i, j, goal_i, goal_j):
         f &= (~Space_Occupied[between][j] | BK_Space_Occupied[between][j])
       return f
   k = i
-  while k < (BOARD_SIZE-1) & (j == goal_j):
+  while (k < (BOARD_SIZE-1)) & (j == goal_j):
     k+=1
     if (k == goal_i) & (j == goal_j):
       f = true
@@ -197,19 +222,19 @@ def rook_move(i, j, goal_i, goal_j):
         f &= (~Space_Occupied[between][j] | BK_Space_Occupied[between][j])
       return f
   k = j
-  while (k > 0)& (i == goal_i):
+  while (k > 0) & (i == goal_i):
     k-=1
     if (i == goal_i) & (k == goal_j):
       f = true
-      for between in range(i-1,goal_i,-1):
+      for between in range(j-1,goal_j,-1):
         f &= (~Space_Occupied[i][between] | BK_Space_Occupied[i][between])
       return f
   k = j
-  while k < (BOARD_SIZE-1):
+  while (k < (BOARD_SIZE-1)) & (i == goal_i):
     k+=1
     if (i == goal_i) & (k == goal_j):
       f = true
-      for between in range(i+1,goal_i):
+      for between in range(j+1,goal_j):
         f &= (~Space_Occupied[i][between] | BK_Space_Occupied[i][between])
       return f
   return f
@@ -331,32 +356,26 @@ def White_Potential_Movement(availablePieces):
     for j in range(BOARD_SIZE):
       importantSpot = White_Potential_Moves[i][j]
       f = true.negate()
-      for piece in availablePieces:
-        if piece == WQ_Space_Occupied:
-          for i2 in range(BOARD_SIZE):
-            for j2 in range(BOARD_SIZE):
-              queen_spot = WQ_Space_Occupied[i2][j2]
-              queen_can_take_i_j = queen_move(i2,j2, i ,j)
-              f |= (queen_spot & queen_can_take_i_j)
+      for i2 in range(BOARD_SIZE):
+        for j2 in range(BOARD_SIZE):
+          for piece in availablePieces:
+            if piece == WQ_Space_Occupied:
+              if (i2 != i) | (j2 != j):
+                queen_spot = WQ_Space_Occupied[i2][j2]
+                queen_can_take_i_j = queen_move(i2,j2, i ,j)
+                f |= (queen_spot & queen_can_take_i_j)
+            if piece == WP_Space_Occupied:
+              #In the case of a pawn, the pawn must have an row value 1 smaller than the importantSpot, and a column value either 1 greater or 1 smaller than the importantSpot
+              # Translates to: i2 == i-1 (meaning the pawn is 1 above the importantSpot)
+              # and (j2 == j-1) | (j2 == j+1) (means the pawn is 1 spot away from the king horizontally)
+              # The nice thing about this is it means tthe pawn being able to take the importantSpot is VERY easy to code, just if there's a pawn at a valid location, then
+              # it can take the piece
+              if (i2 == i-1) & ((j2 ==j-1) | (j2 == j+1)):
+                pawn_at = WP_Space_Occupied[i2][j2]
+                f |= pawn_at
 
       #if (a piece at some location can capture a piece at (i,j)) then White_Potential_Moves[i][j] is true
       constraints.append(iff(importantSpot, f))
-
-        # if piece == WP_Space_Occupied:
-        #   for i in range(BOARD_SIZE):
-        #     for j in range(BOARD_SIZE):
-        #       pawn_at = WP_Space_Occupied[i][j]
-        #       pawn_take = true
-        #       #Implemented edge checking
-        #       if i==0:
-        #         pawn_take &= White_Potential_Moves[i+1][j-1]
-        #       elif i==BOARD_SIZE-1:
-        #         pawn_take &= White_Potential_Moves[i-1][j-1]
-        #       elif j!=0:
-        #         pawn_take &= White_Potential_Moves[i-1][j-1]
-        #         pawn_take &= White_Potential_Moves[i+1][j-1]
-        #       # if a pawn is at spot [i][j], then it can take everything defined just above for pawn_take
-        #       constraints.append(~pawn_at | pawn_take)
   return constraints
 
 #set spaces_occupied for a space as true if there is a piece on it
@@ -369,7 +388,10 @@ def spaceOccupied():
       #WQ_Space_Occupied[i][j] -> Space_Occupied[i][j]
       constraints.append(~WQ_Space_Occupied[i][j] | Space_Occupied[i][j])
       constraints.append(~WP_Space_Occupied[i][j] | Space_Occupied[i][j])
-      constraints.append( ~Space_Occupied[i][j] |(WP_Space_Occupied[i][j] | WQ_Space_Occupied[i][j] | BK_Space_Occupied[i][j]) )
+      right = Space_Occupied[i][j]
+      #need to expand this as new pieces are added
+      left = (WP_Space_Occupied[i][j] | WQ_Space_Occupied[i][j] | BK_Space_Occupied[i][j])
+      constraints.append(iff(right, left))
 
       #add more constraints for occupying spaces as more white pieces are added.
 
@@ -487,15 +509,19 @@ def Theory():
 
   E = addConstraints(E, outerBound())
 
-  E = addConstraints(E, White_Potential_Movement([WQ_Space_Occupied]))
+  E = addConstraints(E, White_Potential_Movement([WQ_Space_Occupied,WP_Space_Occupied]))
 
   E = addConstraints(E, limitNumberPieces(BK_Space_Occupied, BK_Count, BK_Total_Count, 1, True))
 
-  E = addConstraints(E, limitNumberPieces(WQ_Space_Occupied, WQ_Count, WQ_Total_Count, 4))
+  E = addConstraints(E, limitNumberPieces(WQ_Space_Occupied, WQ_Count, WQ_Total_Count, 0, True))
+
+  E = addConstraints(E, limitNumberPieces(WP_Space_Occupied, WP_Count, WP_Total_Count, 4, True))
 
   # Can't be in both checkmate and stalemate
+  E.add_constraint(~Checkmate | ~Stalemate)
   #E.add_constraint(iff(Checkmate, ~Stalemate))
-
+  #E.add_constraint(~Checkmate | Stalemate)
+  E.add_constraint(Checkmate)
   # iff BK_No_Moves (ie the king has no valid moves), the game is either in checkmate or stalemate. pretty obvious
   # this will change if we add other pieces to the black side that are able to move, where we will also have to check
   # if the other peices are unable to move
@@ -507,26 +533,27 @@ def Theory():
   E.add_constraint(iff(Check & BK_No_Moves, Checkmate))
 
   #Seeing if the king is in check
+  allPotential = true.negate()
   for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
-      # if BK is at (i,j) and White can move to (i,j), then check (iff)
-      left = (BK_Space_Occupied[i][j] & White_Potential_Moves[i][j])
-      right = Check
-      E.add_constraint(left.negate() | right)
+      allPotential |= (BK_Space_Occupied[i][j] & White_Potential_Moves[i][j])
+  #if allPotential is FALSE, that means that the king certainly is not in check
+  #if allPotential is TRUE, that means the king is in check
+  E.add_constraint(iff(allPotential, Check))
 
   return E
 
 if __name__ == "__main__":
     T = Theory()
     # If we want to add an initial board setting you need:
-    T.add_constraint(parse_board(example_board))
+    #T.add_constraint(parse_board(example_board))
 
     solution = T.solve()
     #print(solution)
     print(draw_board(parse_solution(solution)))
 
     # print("\nSatisfiable: %s" % T.is_satisfiable())
-    # print("# Solutions: %d" % T.count_solutions())
+    #print("# Solutions: %d" % T.count_solutions())
     # print("   Solution: %s" % T.solve())
 
     # print("\nVariable likelihoods:")

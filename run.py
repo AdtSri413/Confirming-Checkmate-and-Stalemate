@@ -188,7 +188,7 @@ def parse_solution(solution):
       board[int(key[-3])][int(key[-1])] = "WH"
   print(x)
 
-  #Below is code to also return where white can move. Comment it out when not needed, but it is useful for comparisons
+  # # Below is code to also return where white can move. Comment it out when not needed, but it is useful for comparisons
   # board2 = [
   #   [0 for i in range(BOARD_SIZE)] for i in range(BOARD_SIZE)
   # ]
@@ -309,15 +309,6 @@ def bishop_move(i, j, goal_i, goal_j):
       for between in range(1,i-k):
         f &= (~Space_Occupied[i+between][j+between] | BK_Space_Occupied[i+between][j+between])
       return f
-
-
-              # for k in range(BOARD_SIZE): #i and j are the row and column the queen occupies
-              #     for l in range(BOARD_SIZE):
-              #         White_Potential_Moves[i][k] = true
-              #         White_Potential_Moves[l][j] = true
-              #         if (k-i == l-j | k-i == (0-(l-j)) ):
-              #             White_Potential_Moves[k][l] = true
-
   return f
 
 def queen_move(i,j, i_goal, j_goal):
@@ -364,6 +355,7 @@ def White_Potential_Movement(availablePieces):
         for j2 in range(BOARD_SIZE):
           for piece in availablePieces:
             if piece == WQ_Space_Occupied:
+              #queen can't take the spot it is itself on
               if (i2 != i) | (j2 != j):
                 queen_spot = WQ_Space_Occupied[i2][j2]
                 queen_can_take_i_j = queen_move(i2,j2, i ,j)

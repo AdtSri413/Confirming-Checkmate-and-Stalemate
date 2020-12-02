@@ -313,58 +313,34 @@ def queen_move(i,j, i_goal, j_goal):
   vertical_takes = bishop_move(i,j, i_goal, j_goal)
   return horizontal_takes | vertical_takes
 
-def knight_move(i, j):
-  f = true
+def knight_move(i, j, goal_i, goal_j):
+  f = true.negate()
   #move 2, 1
   #left Moves
-  if ((i-2) > 0):
-      if ((j-1) > 0):
-          f &= White_Potential_Moves[i-2][j-1]
-      if ((j+1) < (BOARD_SIZE-1)):
-          f &= White_Potential_Moves[i-2][j+1]
+  if ((i-2) == goal_i):
+      if ((j-1) == goal_j):
+          f = true
+      if ((j+1) == goal_j):
+          f = true
   #Right
-  if ((i+2) < (BOARD_SIZE-1)):
-      if ((j-1) > 0):
-          f &= White_Potential_Moves[i+2][j-1]
-      if ((j+1) < (BOARD_SIZE-1)):
-          f &= White_Potential_Moves[i+2][j+1]
+  if ((i+2) == goal_i):
+      if ((j-1) == goal_j):
+          f = true
+      if ((j+1) == goal_j):
+          f = true
   #forwards
-  if ((j-2) > 0):
-      if ((i-1) > 0):
-          f &= White_Potential_Moves[i-1][j-2]
-      if ((i+1) < (BOARD_SIZE-1)):
-          f &= White_Potential_Moves[i+1][j-2]
+  if ((j-2) == goal_j):
+      if ((i-1) == goal_i):
+          f = true
+      if ((i+1) == goal_i):
+          f = true
   #backwards
-  if ((j+2) < (BOARD_SIZE-1)):
-      if ((i-1) > 0):
-          f &= White_Potential_Moves[i-1][j+2]
-      if ((i+1) < (BOARD_SIZE-1)):
-          f &= White_Potential_Moves[i+1][j+2]
-  #move 1, 2
-  #left Moves
-  if ((i-1) > 0):
-      if ((j-2) > 0):
-          f &= White_Potential_Moves[i-1][j-2]
-      if ((j+2) < (BOARD_SIZE-1)):
-          f &= White_Potential_Moves[i-1][j+2]
-  #Right
-  if ((i+1) < (BOARD_SIZE-1)):
-      if ((j-2) > 0):
-          f &= White_Potential_Moves[i+1][j-2]
-      if ((j+2) < (BOARD_SIZE-1)):
-          f &= White_Potential_Moves[i+1][j+2]
-  #forwards
-  if ((j-1) > 0):
-      if ((i-2) > 0):
-          f &= White_Potential_Moves[i-2][j-1]
-      if ((i+2) < (BOARD_SIZE-1)):
-          f &= White_Potential_Moves[i+2][j-1]
-  #backwards
-  if ((j+1) < (BOARD_SIZE-1)):
-      if ((i-2) > 0):
-          f &= White_Potential_Moves[i-2][j+1]
-      if ((i+2) < (BOARD_SIZE-1)):
-          f &= White_Potential_Moves[i+2][j+1]
+  if ((j+2) == goal_j):
+      if ((i-1) == goal_i):
+          f = true
+      if ((i+1) == goal_i):
+          f = true
+  return f
 
 def White_Potential_Movement(availablePieces):
   constraints = []

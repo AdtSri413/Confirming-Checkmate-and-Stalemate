@@ -52,6 +52,10 @@ WR_Count, WR_Total_Count = count_builder("WR")
 WB_Space_Occupied = []
 WB_Count, WB_Total_Count = count_builder("WB")
 
+#White knight (called "WH" for white horsem because the white king is WK) stuff
+WH_Space_Occupied = []
+WH_Count, WH_Total_Count = count_builder("WH")
+
 #White Potential Moves
 White_Potential_Moves = []
 
@@ -63,6 +67,7 @@ for i in range(BOARD_SIZE):
     WP_Space_Occupied.append([])
     WR_Space_Occupied.append([])
     WB_Space_Occupied.append([])
+    WH_Space_Occupied.append([])
     Space_Occupied.append([])
     White_Potential_Moves.append([])
     for j in range(BOARD_SIZE):
@@ -71,6 +76,7 @@ for i in range(BOARD_SIZE):
         WP_Space_Occupied[i].append(Var(f'WP_Occupied_{i},{j}'))
         WR_Space_Occupied[i].append(Var(f'WR_Occupied_{i},{j}'))
         WB_Space_Occupied[i].append(Var(f'WB_Occupied_{i},{j}'))
+        WH_Space_Occupied[i].append(Var(f'WH_Occupied_{i},{j}'))
         Space_Occupied[i].append(Var(f'Space_Occupied_{i},{j}'))
         White_Potential_Moves[i].append(Var(f'White_Potential_Moves{i},{j}'))
         if j == BOARD_SIZE-1:
@@ -134,12 +140,16 @@ def parse_board(board):
     for j in range(BOARD_SIZE):
       if board[i][j]=="BK":
         f &= BK_Space_Occupied[i][j]
-
       elif board[i][j]=="WQ":
         f &= WQ_Space_Occupied[i][j]
-
       elif board[i][j]=="WP":
         f &= WP_Space_Occupied[i][j]
+      elif board[i][j]=="WR":
+        f &= WR_Space_Occupied[i][j]
+      elif board[i][j]=="WB":
+        f &= WB_Space_Occupied[i][j]
+      elif board[i][j]=="WH":
+        f &= WH_Space_Occupied[i][j]
 
       else:
         f &= ~Space_Occupied[i][j]
@@ -174,6 +184,8 @@ def parse_solution(solution):
       board[int(key[-3])][int(key[-1])] = "WR"
     if (key[:-3] == 'WB_Occupied_') & value:
       board[int(key[-3])][int(key[-1])] = "WB"
+    if (key[:-3] == 'WH_Occupied_') & value:
+      board[int(key[-3])][int(key[-1])] = "WH"
   print(x)
 
   #Below is code to also return where white can move. Comment it out when not needed, but it is useful for comparisons
@@ -377,6 +389,12 @@ def White_Potential_Movement(availablePieces):
                 bishop_at = WB_Space_Occupied[i2][j2]
                 bishop_can_take_i_j = bishop_move(i2,j2,i,j)
                 f |= (bishop_at & bishop_can_take_i_j)
+            if piece == WH_Space_Occupied:
+              #A knight will never move more than 2 away in a single axis.
+              if (abs(i2-i) <= 2) & (abs(j2-j) <= 2):
+                knight_at = WH_Space_Occupied[i2][j2]
+                knight_can_take_i_j = knight_move(i2,j2,i,j)
+                f |= (knight_at & knight_can_take_i_j)
 
       #if (a piece at some location can capture a piece at (i,j)) then White_Potential_Moves[i][j] is true
       constraints.append(iff(importantSpot, f))
@@ -392,19 +410,19 @@ def spaceOccupied():
       # Handling to maake sure only 1 of the _Space_Occupied[i][j]'s is true is done below
       right = Space_Occupied[i][j]
       #need to expand this as new pieces are added
-      left = (WP_Space_Occupied[i][j] | WQ_Space_Occupied[i][j] | BK_Space_Occupied[i][j] | WR_Space_Occupied[i][j] | WB_Space_Occupied[i][j] )
+      left = (WP_Space_Occupied[i][j] | WQ_Space_Occupied[i][j] | BK_Space_Occupied[i][j] | WR_Space_Occupied[i][j] | WB_Space_Occupied[i][j] | WH_Space_Occupied[i][j] )
       constraints.append(iff(right, left))
 
       #add more constraints for occupying spaces as more white pieces are added.
 
       # Also here we will make sure there is only 1 piece per square (IE can't have a rook and bishop on the same square).
       # (BK_Space_Occupied[i][j] -> ~WQ_Space_Occupied[i][j]) as well as (WQ_Space_Occupied[i][j] -> ~BK_Space_Occupied[i][j])
-      constraints.append( (~BK_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j] & ~WB_Space_Occupied[i][j] ) ) )
-      constraints.append( (~WQ_Space_Occupied[i][j] | (~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j] & ~WB_Space_Occupied[i][j] ) ) )
-      constraints.append( (~WP_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j] & ~WB_Space_Occupied[i][j] ) ) )
-      constraints.append( (~WR_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WB_Space_Occupied[i][j] ) ) )
-      constraints.append( (~WB_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j] ) ) )
-
+      constraints.append( (~BK_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j] & ~WB_Space_Occupied[i][j] & ~WH_Space_Occupied[i][j] ) ) )
+      constraints.append( (~WQ_Space_Occupied[i][j] | (~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j] & ~WB_Space_Occupied[i][j] & ~WH_Space_Occupied[i][j] ) ) )
+      constraints.append( (~WP_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j] & ~WB_Space_Occupied[i][j] & ~WH_Space_Occupied[i][j] ) ) )
+      constraints.append( (~WR_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WB_Space_Occupied[i][j] & ~WH_Space_Occupied[i][j] ) ) )
+      constraints.append( (~WB_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j] & ~WH_Space_Occupied[i][j] ) ) )
+      constraints.append( (~WH_Space_Occupied[i][j] | (~WQ_Space_Occupied[i][j] & ~BK_Space_Occupied[i][j] & ~WP_Space_Occupied[i][j] & ~WR_Space_Occupied[i][j] & ~WB_Space_Occupied[i][j] ) ) )
       #add more constraints for pieces on pieces as pieces are added.
   return constraints
 
@@ -514,7 +532,7 @@ def Theory():
 
   E = addConstraints(E, outerBound())
 
-  E = addConstraints(E, White_Potential_Movement([WQ_Space_Occupied,WP_Space_Occupied, WR_Space_Occupied, WB_Space_Occupied]))
+  E = addConstraints(E, White_Potential_Movement([WQ_Space_Occupied,WP_Space_Occupied, WR_Space_Occupied, WB_Space_Occupied, WH_Space_Occupied]))
 
   E = addConstraints(E, limitNumberPieces(BK_Space_Occupied, BK_Count, BK_Total_Count, 1, True))
 
@@ -524,15 +542,20 @@ def Theory():
 
   E = addConstraints(E, limitNumberPieces(WR_Space_Occupied, WR_Count, WR_Total_Count, 0, True)) #For Rook 2 is min for stalemate, 2 is min for checkmate, and 50 is max for neither
 
-  E = addConstraints(E, limitNumberPieces(WB_Space_Occupied, WB_Count, WB_Total_Count, 2, True)) #For Bishop 3 is min for stalemate, 3 is min for checkmate, and 57 is max for neither
+  E = addConstraints(E, limitNumberPieces(WB_Space_Occupied, WB_Count, WB_Total_Count, 0, True)) #For Bishop 3 is min for stalemate, 3 is min for checkmate, and 57 is max for neither
+
+  E = addConstraints(E, limitNumberPieces(WH_Space_Occupied, WH_Count, WH_Total_Count, 61, True)) #For Knight 2 is min for stalemate, 3 is min for checkmate, and  is max for neither
 
   # Can't be in both checkmate and stalemate
   E.add_constraint(~Checkmate | ~Stalemate)
-  #E.add_constraint(~Checkmate & ~Stalemate)
+  
   #E.add_constraint(iff(Checkmate, ~Stalemate))
-  #E.add_constraint(~Checkmate | Stalemate)
-  E.add_constraint(Stalemate)
+
+  #comment these out as needed to force the game to be stalemate, checkmate, or neither
+  #E.add_constraint(Stalemate)
   #E.add_constraint(Checkmate)
+  E.add_constraint(~Checkmate & ~Stalemate)
+
   # iff BK_No_Moves (ie the king has no valid moves), the game is either in checkmate or stalemate. pretty obvious
   # this will change if we add other pieces to the black side that are able to move, where we will also have to check
   # if the other peices are unable to move
@@ -564,7 +587,7 @@ if __name__ == "__main__":
     print(draw_board(parse_solution(solution)))
 
     # print("\nSatisfiable: %s" % T.is_satisfiable())
-    #print("# Solutions: %d" % T.count_solutions())
+    # print("# Solutions: %d" % T.count_solutions())
     # print("   Solution: %s" % T.solve())
 
     # print("\nVariable likelihoods:")

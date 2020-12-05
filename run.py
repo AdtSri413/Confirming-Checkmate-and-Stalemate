@@ -659,11 +659,11 @@ def Theory():
 if __name__ == "__main__":
     T = Theory()
     # If we want to add an initial board setting you need:
-    T.add_constraint(parse_board(example_board))
+    #T.add_constraint(parse_board(example_board))
 
     solution = T.solve()
-    print(solution)
-    #print(draw_board(parse_solution(solution)))
+    #print(solution)
+    print(draw_board(parse_solution(solution)))
 
     # print("\nSatisfiable: %s" % T.is_satisfiable())
     # print("# Solutions: %d" % T.count_solutions())

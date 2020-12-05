@@ -144,12 +144,7 @@ example_board = [
 # ]
 
 # function for setting the initial board configuration. ALL it will do is set
-# The positions of pieces. This may be a question to ask for feedback, if we can set
-# where the king (or other pieces) can move here, but I *think* that would go against
-# the idea of using logic, not python programming, to solve it
-
-# Maybe based on the location of the king setting the movement ones to false only in the situation it would be moving
-# off the board. The other ones leave to figure out later. Still, maybe the TA's want us to do that with constraints(?)
+# The positions of pieces. 
 def parse_board(board):
   #board parser starts here
   f = true
@@ -175,6 +170,7 @@ def parse_board(board):
   return f
 
 #parse the output from the model into a board array
+
 def parse_solution(solution):
   board = [
     [0 for i in range(BOARD_SIZE)] for i in range(BOARD_SIZE)
@@ -227,6 +223,7 @@ def parse_solution(solution):
 
   return board
 
+# We want our board to be pretty, so this will make it pretty.
 def draw_board(board):
   #set any remaining spaces to 2 spaces as empty squares
   for i in range(BOARD_SIZE):
@@ -245,6 +242,9 @@ def draw_board(board):
 def iff(left, right):
     return (left.negate() | right) & (right.negate() | left)
 
+# To easily determine/stop the black king from being able to leave the board, adding an additional "invisible" row and column to
+# where the white pieces are able to move. Doesn't affect anything, except for the moment the black king tries to leave the bounds
+# of the board, in which instance it will encounter this layer and because it says white can move there, the black king won't.
 def outerBound():
   constraints = []
   for i in range(BOARD_SIZE+1):
@@ -253,9 +253,13 @@ def outerBound():
         constraints.append(White_Potential_Moves[i][j])
   return constraints
 
+# Determines if a rook can move from point (i,j) to point (goal_i,goal_j), where it is unable to if there is a piece (other than the black king)
+# in it's way. The reason we DONT take into account if a black king is in the way is because the black king can move, so if it moves to a different square,
+# all of a sudden the piece is able to continue on it's path. The black king's location just doesn't matter to block it's movement
 def rook_move(i, j, goal_i, goal_j):
   f = true.negate()
   k = i
+  # moving to the top of the board
   while (k > 0) & (j == goal_j):
     k-=1
     if (k == goal_i) & (j == goal_j):
@@ -264,6 +268,7 @@ def rook_move(i, j, goal_i, goal_j):
         f &= (~Space_Occupied[between][j] | BK_Space_Occupied[between][j])
       return f
   k = i
+  # moving to the bottom of the board
   while (k < (BOARD_SIZE-1)) & (j == goal_j):
     k+=1
     if (k == goal_i) & (j == goal_j):
@@ -272,6 +277,7 @@ def rook_move(i, j, goal_i, goal_j):
         f &= (~Space_Occupied[between][j] | BK_Space_Occupied[between][j])
       return f
   k = j
+  # moving to the left across the board
   while (k > 0) & (i == goal_i):
     k-=1
     if (i == goal_i) & (k == goal_j):
@@ -280,6 +286,7 @@ def rook_move(i, j, goal_i, goal_j):
         f &= (~Space_Occupied[i][between] | BK_Space_Occupied[i][between])
       return f
   k = j
+  #moving right across the board
   while (k < (BOARD_SIZE-1)) & (i == goal_i):
     k+=1
     if (i == goal_i) & (k == goal_j):
@@ -289,10 +296,12 @@ def rook_move(i, j, goal_i, goal_j):
       return f
   return f
 
+# Exact same thing as the rook movement, except in diagonals instead of straight lines
 def bishop_move(i, j, goal_i, goal_j):
   f = true.negate()
   k = i
   l = j
+  # moving up and left
   while (k > 0) & (l > 0):
     k-=1
     l-=1
@@ -303,6 +312,7 @@ def bishop_move(i, j, goal_i, goal_j):
       return f
   k = i
   l = j
+  # moving up and right
   while (k > 0) & (l < BOARD_SIZE-1):
     k-=1
     l+=1
@@ -313,6 +323,7 @@ def bishop_move(i, j, goal_i, goal_j):
       return f
   k = i
   l = j
+  # moving down and left
   while (k < BOARD_SIZE-1) & (l > 0):
     k+=1
     l-=1
@@ -323,6 +334,7 @@ def bishop_move(i, j, goal_i, goal_j):
       return f
   k = i
   l = j
+  # moving down and right
   while (k < BOARD_SIZE-1) & (l < BOARD_SIZE-1):
     k+=1
     l+=1
@@ -333,33 +345,36 @@ def bishop_move(i, j, goal_i, goal_j):
       return f
   return f
 
+# a queen can just move to any location either a rook or a bishop can move to - ie any direction in a straight line
 def queen_move(i,j, i_goal, j_goal):
   horizontal_takes = rook_move(i,j, i_goal, j_goal)
   vertical_takes = bishop_move(i,j, i_goal, j_goal)
   return horizontal_takes | vertical_takes
 
+# same as all the previous, except a little special because a knight has a special "L" shaped moving pattern
+# also, because a knight can jump over pieces, we don't need to worry about anything blocking it. So we don't need any of the fancy
+# "&" logic from before because it's just: reach a spot
 def knight_move(i, j, goal_i, goal_j):
   f = true.negate()
-  #move 2, 1
-  #left Moves
+  #up 2
   if ((i-2) == goal_i):
       if ((j-1) == goal_j):
           f = true
       if ((j+1) == goal_j):
           f = true
-  #Right
+  #down 2 
   if ((i+2) == goal_i):
       if ((j-1) == goal_j):
           f = true
       if ((j+1) == goal_j):
           f = true
-  #forwards
+  #left 2 
   if ((j-2) == goal_j):
       if ((i-1) == goal_i):
           f = true
       if ((i+1) == goal_i):
           f = true
-  #backwards
+  #right 2 
   if ((j+2) == goal_j):
       if ((i-1) == goal_i):
           f = true
@@ -367,23 +382,28 @@ def knight_move(i, j, goal_i, goal_j):
           f = true
   return f
 
+#For every possible locaation on a board, we take that location as a "special" spot, and see if there is some piece elsewhere that is
+# Capable of moving to this location on the board.
 def White_Potential_Movement(availablePieces):
   constraints = []
   for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
+      #iterate our "special" item to be all of the board locations
       importantSpot = White_Potential_Moves[i][j]
       f = true.negate()
       for i2 in range(BOARD_SIZE):
         for j2 in range(BOARD_SIZE):
+          #for every square on the board, see if there is some  piece on that square that is capable of moving to our "special" square
           for piece in availablePieces:
             if piece == WQ_Space_Occupied:
-              #queen can't take the spot it is itself on
+              # Queen can't take the spot it is itself on, but other than that... ehhhh maybe
               if (i2 != i) | (j2 != j):
                 queen_spot = WQ_Space_Occupied[i2][j2]
                 queen_can_take_i_j = queen_move(i2,j2, i ,j)
                 f |= (queen_spot & queen_can_take_i_j)
+
             if piece == WP_Space_Occupied:
-              #In the case of a pawn, the pawn must have an row value 1 smaller than the importantSpot, and a column value either 1 greater or 1 smaller than the importantSpot
+              # In the case of a pawn, the pawn must have an row value 1 smaller than the importantSpot, and a column value either 1 greater or 1 smaller than the importantSpot
               # Translates to: i2 == i-1 (meaning the pawn is 1 above the importantSpot)
               # and (j2 == j-1) | (j2 == j+1) (means the pawn is 1 spot away from the king horizontally)
               # The nice thing about this is it means tthe pawn being able to take the importantSpot is VERY easy to code, just if there's a pawn at a valid location, then
@@ -391,24 +411,28 @@ def White_Potential_Movement(availablePieces):
               if (i2 == i-1) & ((j2 ==j-1) | (j2 == j+1)):
                 pawn_at = WP_Space_Occupied[i2][j2]
                 f |= pawn_at
+
             if piece == WR_Space_Occupied:
               #rooks can only move up/down and left/right, so i2 must equal i, OR j2 must equal j for me to even consider it
               if (i2 == i) | (j2 == j):
                 rook_at = WR_Space_Occupied[i2][j2]
                 rook_can_take_i_j = rook_move(i2,j2,i,j)
                 f |= (rook_at & rook_can_take_i_j)
+
             if piece == WB_Space_Occupied:
               # diagonals means that i-j == i2-j2, or i+j == i2+j2
               if (i-j == i2-j2) | (i+j == i2+j2):
                 bishop_at = WB_Space_Occupied[i2][j2]
                 bishop_can_take_i_j = bishop_move(i2,j2,i,j)
                 f |= (bishop_at & bishop_can_take_i_j)
+
             if piece == WH_Space_Occupied:
               #A knight will never move more than 2 away in a single axis.
               if (abs(i2-i) <= 2) & (abs(j2-j) <= 2):
                 knight_at = WH_Space_Occupied[i2][j2]
                 knight_can_take_i_j = knight_move(i2,j2,i,j)
                 f |= (knight_at & knight_can_take_i_j)
+
             if piece == WK_Space_Occupied:
               #A king can take any adjacent square, but not the square where i=i2 and j=j2 (ie its own square)
               if (abs(i2-i) <= 1) & (abs(j2-j) <= 1) & ((i != i2) | (j != j2)):
@@ -419,7 +443,10 @@ def White_Potential_Movement(availablePieces):
       constraints.append(iff(importantSpot, f))
   return constraints
 
-#set spaces_occupied for a space as true if there is a piece on it
+# This function has 2 purposes:
+# 1. To condense if there is a piece on a particular space into a single variable, which is used to know if there is a piece
+#    blocking the movement of another for White_Potential_Moves, as well as when passing in a pre-built board.
+# 2. Make sure that there is only 1 piece on a specific square.
 def spaceOccupied():
   constraints = []
   for i in range(BOARD_SIZE):
@@ -446,9 +473,6 @@ def spaceOccupied():
 
       #add more constraints for pieces on pieces as pieces are added.
   return constraints
-
-# logic I am implementing right now will limit it to 2 or fewer queens. In the future, expand this
-# to allow for x or fewer queens
 
 # If exact is true, then must have exactly "allowedNum" number of pieces on the board. If exact is false,
 # can have up to and including "allowedNum" number of pieces on the board.
@@ -502,6 +526,7 @@ def Kings_Adjacent():
     for j in range(BOARD_SIZE):
       BK_spot = BK_Space_Occupied[i][j]
       adjacentKings = true.negate()
+      #all of these if statements are needed so I don't get an out-of-bounds exception
       if i>0:
         adjacentKings |= WK_Space_Occupied[i-1][j]
       if j>0:
@@ -522,6 +547,7 @@ def Kings_Adjacent():
       constraints.append(~BK_spot | adjacentKings.negate())
   return constraints
 
+#Function to figure out where the black king is capable of moving to
 def BK_Potential_Moves():
   constraints = []
   allCombined = [true.negate() for i in range(8)]
@@ -633,11 +659,11 @@ def Theory():
 if __name__ == "__main__":
     T = Theory()
     # If we want to add an initial board setting you need:
-    #T.add_constraint(parse_board(example_board))
+    T.add_constraint(parse_board(example_board))
 
     solution = T.solve()
-    #print(solution)
-    print(draw_board(parse_solution(solution)))
+    print(solution)
+    #print(draw_board(parse_solution(solution)))
 
     # print("\nSatisfiable: %s" % T.is_satisfiable())
     # print("# Solutions: %d" % T.count_solutions())

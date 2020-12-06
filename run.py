@@ -52,7 +52,7 @@ WR_Count, WR_Total_Count = count_builder("WR")
 WB_Space_Occupied = []
 WB_Count, WB_Total_Count = count_builder("WB")
 
-#White knight (called "WH" for white horsem because the white king is WK) stuff
+#White knight (called "WH" for white horse because the white king is WK) stuff
 WH_Space_Occupied = []
 WH_Count, WH_Total_Count = count_builder("WH")
 
@@ -144,7 +144,7 @@ example_board = [
 # ]
 
 # function for setting the initial board configuration. ALL it will do is set
-# The positions of pieces. 
+# The positions of pieces.
 def parse_board(board):
   #board parser starts here
   f = true
@@ -362,19 +362,19 @@ def knight_move(i, j, goal_i, goal_j):
           f = true
       if ((j+1) == goal_j):
           f = true
-  #down 2 
+  #down 2
   if ((i+2) == goal_i):
       if ((j-1) == goal_j):
           f = true
       if ((j+1) == goal_j):
           f = true
-  #left 2 
+  #left 2
   if ((j-2) == goal_j):
       if ((i-1) == goal_i):
           f = true
       if ((i+1) == goal_i):
           f = true
-  #right 2 
+  #right 2
   if ((j+2) == goal_j):
       if ((i-1) == goal_i):
           f = true
@@ -551,7 +551,7 @@ def Kings_Adjacent():
 def BK_Potential_Moves():
   constraints = []
   allCombined = [true.negate() for i in range(8)]
-  
+
   #The following I believe is slightly unoptimized, but in the grand scheme of things, good enough (if I'm right it's only 512 unneeded constraints, which isn't much)
   for i in range(BOARD_SIZE):
     for j in range(BOARD_SIZE):
@@ -580,7 +580,7 @@ def BK_Potential_Moves():
     #if all of the combined things are false, then BK_Moves for that one MUST be true
     right = allCombined[i].negate()
     left = BK_Moves[i]
-    constraints.append(right.negate() | left) 
+    constraints.append(right.negate() | left)
 
   # if all of BK_Moves[i] are false, then BK_No_Moves is true and vise versa (iff)
   availableMoves = true.negate()
@@ -627,7 +627,7 @@ def Theory():
 
   # Can't be in both checkmate and stalemate
   E.add_constraint(~Checkmate | ~Stalemate)
-  
+
   #E.add_constraint(iff(Checkmate, ~Stalemate))
 
   #comment these out as needed to force the game to be stalemate, checkmate, or neither

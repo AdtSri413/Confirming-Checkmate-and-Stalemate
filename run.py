@@ -116,33 +116,6 @@ Check = Var('Check')
 Stalemate = Var('Stalemate')
 Checkmate = Var('Checkmate')
 
-# example board config
-example_board = [
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0]]
-
-example_board = [
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0],
-[0,0,0,0,0,0,0,0]]
-
-# example_board = [
-#   [0,0,0],
-#   [0,"WQ",0],
-#   ["BK",0,0]
-# ]
-
 # function for setting the initial board configuration. ALL it will do is set
 # The positions of pieces.
 def parse_board(board):
@@ -175,20 +148,20 @@ def parse_solution(solution):
   board = [
     [0 for i in range(BOARD_SIZE)] for i in range(BOARD_SIZE)
   ]
+  check = False
+  checkmate = False
+  stalemate = False
   if solution == None:
     print("No solution")
-    return board
+    return board, check, checkmate, stalemate
   #replace the 0's with pieces as needed
-  x = ''
   for key, value in solution.items():
-    if (key[:7] == "BK_Move"):
-      x += f'{key}: {value}\n'
     if (key == "Check"):
-      print(f"{key}: {value}")
+      check = True
     if (key == "Checkmate") & value:
-      print("Checkmate!!")
+      checkmate = True
     if (key == "Stalemate") & value:
-      print("Stalemate!!!")
+      stalemate = True
     if (key[:-3] == 'BK_Occupied_') & value:
       board[int(key[-3])][int(key[-1])] = "BK"
       print(int(key[-3]),int(key[-1]))
@@ -204,7 +177,6 @@ def parse_solution(solution):
       board[int(key[-3])][int(key[-1])] = "WH"
     if (key[:-3] == 'WK_Occupied_') & value:
       board[int(key[-3])][int(key[-1])] = "WK"
-  print(x)
 
   # # Below is code to also return where white can move. Comment it out when not needed, but it is useful for comparisons
   # board2 = [
@@ -219,9 +191,7 @@ def parse_solution(solution):
   #     if (int(key[-3]) < 8) & (int(key[-1]) < 8):
   #       board2[int(key[-3])][int(key[-1])] = "WT"
   # return board, board2
-
-
-  return board
+  return board, check, checkmate, stalemate
 
 # We want our board to be pretty, so this will make it pretty.
 def draw_board(board):
@@ -613,17 +583,21 @@ def Theory():
 
   E = addConstraints(E, limitNumberPieces(BK_Space_Occupied, BK_Count, BK_Total_Count, 1, True))
 
-  E = addConstraints(E, limitNumberPieces(WQ_Space_Occupied, WQ_Count, WQ_Total_Count, 0, True)) #For Queen, 1 is min for stalemate, 2 is min for checkmate, and 43 is max for neither
+  #There must be at least one black king, so that is always limited. The lines below will restrict each piece so some
+  #Amount. They are useful for exploring the board in a very controlled way, so uncomment them and change them if you have an idea
+  # of what you are doing.
 
-  E = addConstraints(E, limitNumberPieces(WP_Space_Occupied, WP_Count, WP_Total_Count, 0, True)) #For Pawn 3 is min for stalemate, 4 is min for checkmate, and 63 is max for neither
+  # E = addConstraints(E, limitNumberPieces(WQ_Space_Occupied, WQ_Count, WQ_Total_Count, 4, True)) #For Queen, 1 is min for stalemate, 2 is min for checkmate, and 43 is max for neither
 
-  E = addConstraints(E, limitNumberPieces(WR_Space_Occupied, WR_Count, WR_Total_Count, 0, True)) #For Rook 2 is min for stalemate, 2 is min for checkmate, and 50 is max for neither
+  # E = addConstraints(E, limitNumberPieces(WP_Space_Occupied, WP_Count, WP_Total_Count, 6, True)) #For Pawn 3 is min for stalemate, 4 is min for checkmate, and 63 is max for neither
 
-  E = addConstraints(E, limitNumberPieces(WB_Space_Occupied, WB_Count, WB_Total_Count, 0, True)) #For Bishop 3 is min for stalemate, 3 is min for checkmate, and 57 is max for neither
+  # E = addConstraints(E, limitNumberPieces(WR_Space_Occupied, WR_Count, WR_Total_Count, 2, True)) #For Rook 2 is min for stalemate, 2 is min for checkmate, and 50 is max for neither
 
-  E = addConstraints(E, limitNumberPieces(WH_Space_Occupied, WH_Count, WH_Total_Count, 61, True)) #For Knight 2 is min for stalemate, 3 is min for checkmate, and 61 is max for neither
+  # E = addConstraints(E, limitNumberPieces(WB_Space_Occupied, WB_Count, WB_Total_Count, 2, True)) #For Bishop 3 is min for stalemate, 3 is min for checkmate, and 57 is max for neither
 
-  E = addConstraints(E, limitNumberPieces(WK_Space_Occupied, WK_Count, WK_Total_Count, 0, True)) #For King 2 is min for stalemate, NaN is min for checkmate, and 58 is max for neither
+  # E = addConstraints(E, limitNumberPieces(WH_Space_Occupied, WH_Count, WH_Total_Count, 3, True)) #For Knight 2 is min for stalemate, 3 is min for checkmate, and 61 is max for neither
+
+  # E = addConstraints(E, limitNumberPieces(WK_Space_Occupied, WK_Count, WK_Total_Count, 1, True)) #For King 2 is min for stalemate, NaN is min for checkmate, and 58 is max for neither
 
   # Can't be in both checkmate and stalemate
   E.add_constraint(~Checkmate | ~Stalemate)
@@ -633,7 +607,7 @@ def Theory():
   #comment these out as needed to force the game to be stalemate, checkmate, or neither
   #E.add_constraint(Stalemate)
   #E.add_constraint(Checkmate)
-  E.add_constraint(~Checkmate & ~Stalemate)
+  #E.add_constraint(~Checkmate & ~Stalemate)
 
   # iff BK_No_Moves (ie the king has no valid moves), the game is either in checkmate or stalemate. pretty obvious
   # this will change if we add other pieces to the black side that are able to move, where we will also have to check
@@ -656,20 +630,107 @@ def Theory():
 
   return E
 
+
+# The following 3 functions all explore the model in a different way
+
+#This function takes in:
+# mate_constraint, which should be either Checkmate, Stalemate, or (~Checkmate & ~Stalemate), as well as the piece you want to check
+# (with pieceInfo need to supply: [piece_space_occupied, piece_count, piece_total_count])
+# The output, if given the Checkmate or Stalemate for the constraint, is the minimum number of that particular piece needed in order to produce
+# that result.
+# If given (~Checkmate & ~Stalemate), it will find the maximum number of the piece that satisifies this (ie the max of a piece there can be with the black king still
+# being able to move)
+def explore_single_piece(mate_constraint, pieceInfo):
+  solution = None
+  number = 0
+  allPieces = [[WQ_Space_Occupied,WP_Space_Occupied, WR_Space_Occupied, WB_Space_Occupied, WH_Space_Occupied, WK_Space_Occupied],
+               [WQ_Count, WP_Count, WR_Count, WB_Count, WH_Count, WK_Count],
+               [WQ_Total_Count, WP_Total_Count, WR_Total_Count, WB_Total_Count, WH_Total_Count, WK_Total_Count]]
+
+  if mate_constraint in [Checkmate, Stalemate]:
+    while (not solution) & (number < 64):
+      number += 1
+      T = Theory()
+      T = addConstraints(T, limitNumberPieces(pieceInfo[0], pieceInfo[1], pieceInfo[2], number, True))
+
+      for i in range(6):
+        if allPieces[0][i] != pieceInfo[0]:
+          T = addConstraints(T, limitNumberPieces(allPieces[0][i], allPieces[1][i], allPieces[2][i], 0, True))
+        
+      solution = T.solve()
+
+  if mate_constraint == (~Checkmate & ~Stalemate):
+    number = 63
+    solution =  "something other than none by default"
+    while (solution != None) & (number > 0):
+      number -= 1
+      T = Theory()
+      T = addConstraints(T, limitNumberPieces(pieceInfo[0], pieceInfo[1], pieceInfo[2], number, True))
+
+      for i in range(6):
+        if allPieces[0][i] != pieceInfo[0]:
+          T = addConstraints(T, limitNumberPieces(allPieces[0][i], allPieces[1][i], allPieces[2][i], 0, True))
+
+      solution = T.solve()
+
+  return number
+
+# This function will take in a 2d array with the same number of rows and columns as BOARD_SIZE. Given this board, it will create
+# the constraint necessary to force that board to be satisifed in the constraints. It will then tell you if the board is in either
+# stalemate or checkmate
+'''
+Template for an 8x8 board that can be copy/pasted and filled in with whatever you want, to be used for this function
+example_board = [
+[0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0]]
+'''
+def explore_supplied_board(board):
+  T = Theory()
+  constraint = parse_board(board)
+  T.add_constraint(constraint)
+
+  solution = T.solve()
+  result = parse_solution(solution)
+  if result[1]:
+    print("This board has the king in check")
+  if result[2]:
+    print("Furthermore, the king is also in checkmate!")
+  if result[3]:
+    print("This board has the king in stalemate!")
+
+
+  
+
+
 if __name__ == "__main__":
-    T = Theory()
-    # If we want to add an initial board setting you need:
-    #T.add_constraint(parse_board(example_board))
+    # If you don't want to do any of the board exploration shenanigans, and instead just generate a random board, uncomment the 4
+    # lines below (the 3rd one will print about 30k variables, so maybe leave that commented, and the 4th one will print out a nicely
+    # parsed board, so definitly uncomment that one)
+    # T = Theory()
+    # solution = T.solve()
+    # print(solution)
+    # print(draw_board(parse_solution(solution)[0]))
 
-    solution = T.solve()
-    #print(solution)
-    print(draw_board(parse_solution(solution)))
+    # Exploring the model to find the maximum and minimum required
+    # (print statement not included in example, do it yourself)
+    # amount = explore_single_piece(Checkmate, [WQ_Space_Occupied, WQ_Count, WQ_Total_Count])
 
-    # print("\nSatisfiable: %s" % T.is_satisfiable())
-    # print("# Solutions: %d" % T.count_solutions())
-    # print("   Solution: %s" % T.solve())
-
-    # print("\nVariable likelihoods:")
-    # for v,vn in zip([a,b,c,x,y,z], 'abcxyz'):
-    #     print(" %s: %.2f" % (vn, T.likelihood(v)))
-    # print()
+    # Exploring the model by creating a board and seeing if the board is in check, checkmate, or stalemate
+    # I have provided an example here that has the king in checkmate. There is also an empty board supplied at
+    # the start of the explore_supplied_board function the can be filled in as someone pleases
+    # board = [
+    # ["BK",0,"WP",0,0,0,0,0],
+    # [0,"WQ",0,0,0,0,0,0],
+    # [0,0,0,0,0,0,0,0],
+    # [0,0,0,0,0,0,0,0],
+    # [0,0,0,0,0,0,0,0],
+    # [0,0,0,0,0,0,0,0],
+    # [0,0,0,0,0,0,0,0],
+    # [0,0,0,0,0,0,0,0]]
+    # explore_supplied_board(board)

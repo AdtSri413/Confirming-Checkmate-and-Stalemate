@@ -753,4 +753,4 @@ if __name__ == "__main__":
     # This will count up everything, without regards to how many of each piece there are. It would be too much to add the constraints to limit
     # the number of pieces within this function itself (the user would need to pass in a lot of variables, and there's an easier way), 
     # so a person can instead comment and uncomment the limitNumberPieces lines within the function Theory() to force specific numbers of pieces.
-    print(explore_total_solutions())
+    #print(explore_total_solutions())

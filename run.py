@@ -164,7 +164,6 @@ def parse_solution(solution):
       stalemate = True
     if (key[:-3] == 'BK_Occupied_') & value:
       board[int(key[-3])][int(key[-1])] = "BK"
-      print(int(key[-3]),int(key[-1]))
     if (key[:-3] == 'WQ_Occupied_') & value:
       board[int(key[-3])][int(key[-1])] = "WQ"
     if (key[:-3] == 'WP_Occupied_') & value:
@@ -587,24 +586,22 @@ def Theory():
   #Amount. They are useful for exploring the board in a very controlled way, so uncomment them and change them if you have an idea
   # of what you are doing.
 
-  # E = addConstraints(E, limitNumberPieces(WQ_Space_Occupied, WQ_Count, WQ_Total_Count, 4, True)) #For Queen, 1 is min for stalemate, 2 is min for checkmate, and 43 is max for neither
+  # E = addConstraints(E, limitNumberPieces(WQ_Space_Occupied, WQ_Count, WQ_Total_Count, 0, True)) #For Queen, 1 is min for stalemate, 2 is min for checkmate, and 43 is max for neither
 
-  # E = addConstraints(E, limitNumberPieces(WP_Space_Occupied, WP_Count, WP_Total_Count, 6, True)) #For Pawn 3 is min for stalemate, 4 is min for checkmate, and 63 is max for neither
+  # E = addConstraints(E, limitNumberPieces(WP_Space_Occupied, WP_Count, WP_Total_Count, 0, True)) #For Pawn 3 is min for stalemate, 4 is min for checkmate, and 63 is max for neither
 
   # E = addConstraints(E, limitNumberPieces(WR_Space_Occupied, WR_Count, WR_Total_Count, 2, True)) #For Rook 2 is min for stalemate, 2 is min for checkmate, and 50 is max for neither
 
-  # E = addConstraints(E, limitNumberPieces(WB_Space_Occupied, WB_Count, WB_Total_Count, 2, True)) #For Bishop 3 is min for stalemate, 3 is min for checkmate, and 57 is max for neither
+  # E = addConstraints(E, limitNumberPieces(WB_Space_Occupied, WB_Count, WB_Total_Count, 0, True)) #For Bishop 3 is min for stalemate, 3 is min for checkmate, and 57 is max for neither
 
-  # E = addConstraints(E, limitNumberPieces(WH_Space_Occupied, WH_Count, WH_Total_Count, 3, True)) #For Knight 2 is min for stalemate, 3 is min for checkmate, and 61 is max for neither
+  # E = addConstraints(E, limitNumberPieces(WH_Space_Occupied, WH_Count, WH_Total_Count, 0, True)) #For Knight 2 is min for stalemate, 3 is min for checkmate, and 61 is max for neither
 
-  # E = addConstraints(E, limitNumberPieces(WK_Space_Occupied, WK_Count, WK_Total_Count, 1, True)) #For King 2 is min for stalemate, NaN is min for checkmate, and 58 is max for neither
+  # E = addConstraints(E, limitNumberPieces(WK_Space_Occupied, WK_Count, WK_Total_Count, 0, True)) #For King 2 is min for stalemate, NaN is min for checkmate, and 58 is max for neither
 
   # Can't be in both checkmate and stalemate
   E.add_constraint(~Checkmate | ~Stalemate)
 
-  #E.add_constraint(iff(Checkmate, ~Stalemate))
-
-  #comment these out as needed to force the game to be stalemate, checkmate, or neither
+  #comment these out as needed to force the game to be stalemate, checkmate, or neither (if not using one of the exploring functions)
   #E.add_constraint(Stalemate)
   #E.add_constraint(Checkmate)
   #E.add_constraint(~Checkmate & ~Stalemate)
@@ -704,7 +701,14 @@ def explore_supplied_board(board):
   if result[3]:
     print("This board has the king in stalemate!")
 
-
+# This function is super small, because 95% of the constaints a person will change are in place, but commented out
+# within Theory() function. To change what this is counting, please change there, it's much more convenient.
+# Also, ##### WARNING ######
+#       reduce the value of BOARD_SIZE before running this
+def explore_total_solutions(endResult):
+  T = Theory()
+  T.add_constraint(endResult)
+  return T.count_solutions()
   
 
 
@@ -717,9 +721,11 @@ if __name__ == "__main__":
     # print(solution)
     # print(draw_board(parse_solution(solution)[0]))
 
+
     # Exploring the model to find the maximum and minimum required
     # (print statement not included in example, do it yourself)
-    # amount = explore_single_piece(Checkmate, [WQ_Space_Occupied, WQ_Count, WQ_Total_Count])
+    #amount = explore_single_piece(Checkmate, [WQ_Space_Occupied, WQ_Count, WQ_Total_Count])
+    
 
     # Exploring the model by creating a board and seeing if the board is in check, checkmate, or stalemate
     # I have provided an example here that has the king in checkmate. There is also an empty board supplied at
@@ -734,3 +740,17 @@ if __name__ == "__main__":
     # [0,0,0,0,0,0,0,0],
     # [0,0,0,0,0,0,0,0]]
     # explore_supplied_board(board)
+
+    
+    #Exploring the model by counting solutions
+    ################ WARNING ############################
+    # I VERY highly recommend you reduce BOARD_SIZE to at most 6 before doing this (it's a constant and must be done manually)
+    # This is because, well, it's a chess board. There's a LOT of possible solutions to it with a full 8x8 board...
+
+    # By default, there is only one variable for this function: endResult, which can either be:
+    # Checkmate, Stalemate, or (~Checkmate & ~Stalemate).
+    # calling this function will count up the number of possible solutions that result in whatever endResult is.
+    # This will count up everything, without regards to how many of each piece there are. It would be too much to add the constraints to limit
+    # the number of pieces within this function itself (the user would need to pass in a lot of variables, and there's an easier way), 
+    # so a person can instead comment and uncomment the limitNumberPieces lines within the function Theory() to force specific numbers of pieces.
+    print(explore_total_solutions())

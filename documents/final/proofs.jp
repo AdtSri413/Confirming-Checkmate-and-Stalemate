@@ -1,0 +1,96 @@
+﻿CONJECTUREPANEL Proofs
+PROOF "SpaceOccupied→(WQSpaceOccupied∨BSpaceOccupied∨WPSpaceOccupied), (WQSpaceOccupied∨BSpaceOccupied∨WPSpaceOccupied)→SpaceOccupied, BSpaceOccupied→(¬WQSpaceOccupied∧¬WPSpaceOccupied), WPSpaceOccupied→(¬WQSpaceOccupied∧¬BSpaceOccupied), WQSpaceOccupied→(¬BSpaceOccupied∧¬WPSpaceOccupied), WQSpaceOccupied ⊢ SpaceOccupied∧¬BSpaceOccupied∧¬WPSpaceOccupied"
+INFER SpaceOccupied→(WQSpaceOccupied∨BSpaceOccupied∨WPSpaceOccupied),
+     (WQSpaceOccupied∨BSpaceOccupied∨WPSpaceOccupied)→SpaceOccupied,
+     BSpaceOccupied→(¬WQSpaceOccupied∧¬WPSpaceOccupied),
+     WPSpaceOccupied→(¬WQSpaceOccupied∧¬BSpaceOccupied),
+     WQSpaceOccupied→(¬BSpaceOccupied∧¬WPSpaceOccupied),
+     WQSpaceOccupied 
+     ⊢ ¬BSpaceOccupied∧¬WPSpaceOccupied∧SpaceOccupied 
+FORMULAE
+0 ¬BSpaceOccupied∧¬WPSpaceOccupied∧SpaceOccupied,
+1 SpaceOccupied,
+2 ¬BSpaceOccupied∧¬WPSpaceOccupied,
+3 WQSpaceOccupied∨BSpaceOccupied∨WPSpaceOccupied,
+4 WQSpaceOccupied∨BSpaceOccupied∨WPSpaceOccupied→SpaceOccupied,
+5 WQSpaceOccupied∨BSpaceOccupied,
+6 WPSpaceOccupied,
+7 WQSpaceOccupied,
+8 BSpaceOccupied,
+9 WQSpaceOccupied→¬BSpaceOccupied∧¬WPSpaceOccupied,
+10 BSpaceOccupied→(¬WQSpaceOccupied∧¬WPSpaceOccupied),
+11 WQSpaceOccupied→(¬BSpaceOccupied∧¬WPSpaceOccupied),
+12 SpaceOccupied→(WQSpaceOccupied∨BSpaceOccupied∨WPSpaceOccupied),
+13 (WQSpaceOccupied∨BSpaceOccupied∨WPSpaceOccupied)→SpaceOccupied,
+14 WPSpaceOccupied→(¬WQSpaceOccupied∧¬BSpaceOccupied)
+IS
+SEQ (cut[B,C\2,0]) ("→ elim"[A,B\7,2]) (hyp[A\9]) (hyp[A\7]) (cut[B,C\5,0]) (LAYOUT "∨ intro" (0) ("∨ intro(L)"[B,A\8,7]) (hyp[A\7])) (cut[B,C\3,0]) (LAYOUT "∨ intro" (0) ("∨ intro(L)"[B,A\6,5]) (hyp[A\5])) (cut[B,C\1,0]) ("→ elim"[A,B\3,1]) (hyp[A\4]) (hyp[A\3]) (cut[B,C\0,0]) ("∧ intro"[A,B\2,1]) (hyp[A\2]) (hyp[A\1]) (hyp[A\0])
+END
+CONJECTUREPANEL Proofs
+PROOF "BKNoMoves→(CM∨SM), (CM∨SM)→BKNoMoves, (C∧BKNoMoves)→CM, CM→(C∧BKNoMoves), BKNoMoves∧¬C ⊢ SM"
+INFER BKNoMoves→(CM∨SM),
+     (CM∨SM)→BKNoMoves,
+     (C∧BKNoMoves)→CM,
+     CM→(C∧BKNoMoves),
+     BKNoMoves∧¬C 
+     ⊢ SM 
+FORMULAE
+0 SM,
+1 ⊥,
+2 ¬C,
+3 C,
+4 C∧BKNoMoves,
+5 BKNoMoves,
+6 CM,
+7 CM→C∧BKNoMoves,
+8 CM∨SM,
+9 BKNoMoves→CM∨SM,
+10 BKNoMoves∧¬C,
+11 CM→(C∧BKNoMoves),
+12 (C∧BKNoMoves)→CM,
+13 (CM∨SM)→BKNoMoves,
+14 BKNoMoves→(CM∨SM)
+IS
+SEQ (cut[B,C\2,0]) (LAYOUT "∧ elim" (0) ("∧ elim(R)"[A,B\5,2]) (hyp[A\10])) (cut[B,C\5,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\5,2]) (hyp[A\10])) (cut[B,C\8,0]) ("→ elim"[A,B\5,8]) (hyp[A\9]) (hyp[A\5]) ("∨ elim"[A,B,C\6,0,0]) (hyp[A\8]) (cut[B,C\4,0]) ("→ elim"[A,B\6,4]) (hyp[A\7]) (hyp[A\6]) (cut[B,C\3,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\3,5]) (hyp[A\4])) (cut[B,C\1,0]) ("¬ elim"[B\3]) (hyp[A\3]) (hyp[A\2]) ("contra (constructive)"[B\0]) (hyp[A\1]) (hyp[A\0])
+END
+CONJECTUREPANEL Proofs
+PROOF "BKNoMoves→(CM∨SM), (CM∨SM)→BKNoMoves, (C∧BKNoMoves)→CM, CM→(C∧BKNoMoves), BKNoMoves∧C ⊢ CM"
+INFER BKNoMoves→(CM∨SM),
+     (CM∨SM)→BKNoMoves,
+     (C∧BKNoMoves)→CM,
+     CM→(C∧BKNoMoves),
+     BKNoMoves∧C 
+     ⊢ CM 
+FORMULAE
+0 CM,
+1 C∧BKNoMoves,
+2 C∧BKNoMoves→CM,
+3 BKNoMoves,
+4 C,
+5 BKNoMoves∧C,
+6 CM→(C∧BKNoMoves),
+7 (C∧BKNoMoves)→CM,
+8 (CM∨SM)→BKNoMoves,
+9 BKNoMoves→(CM∨SM)
+IS
+SEQ (cut[B,C\4,0]) (LAYOUT "∧ elim" (0) ("∧ elim(R)"[A,B\3,4]) (hyp[A\5])) (cut[B,C\3,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\3,4]) (hyp[A\5])) (cut[B,C\1,0]) ("∧ intro"[A,B\4,3]) (hyp[A\4]) (hyp[A\3]) (cut[B,C\0,0]) ("→ elim"[A,B\1,0]) (hyp[A\2]) (hyp[A\1]) (hyp[A\0])
+END
+CONJECTUREPANEL Proofs
+PROOF "(¬BK1∧¬BK2∧¬BK3∧¬BK4∧¬BK6∧¬BK7∧¬BK8∧¬BK9)→BKNoMoves, BKNoMoves∧C→CM, ¬BK1∧¬BK2∧¬BK3∧¬BK4∧¬BK6∧¬BK7∧¬BK8∧¬BK9, C ⊢ CM"
+INFER (¬BK1∧¬BK2∧¬BK3∧¬BK4∧¬BK6∧¬BK7∧¬BK8∧¬BK9)→BKNoMoves,
+     BKNoMoves∧C→CM,
+     ¬BK1∧¬BK2∧¬BK3∧¬BK4∧¬BK6∧¬BK7∧¬BK8∧¬BK9,
+     C 
+     ⊢ CM 
+FORMULAE
+0 CM,
+1 BKNoMoves∧C,
+2 BKNoMoves∧C→CM,
+3 C,
+4 BKNoMoves,
+5 ¬BK1∧¬BK2∧¬BK3∧¬BK4∧¬BK6∧¬BK7∧¬BK8∧¬BK9,
+6 ¬BK1∧¬BK2∧¬BK3∧¬BK4∧¬BK6∧¬BK7∧¬BK8∧¬BK9→BKNoMoves,
+7 (¬BK1∧¬BK2∧¬BK3∧¬BK4∧¬BK6∧¬BK7∧¬BK8∧¬BK9)→BKNoMoves 
+IS
+SEQ (cut[B,C\4,0]) ("→ elim"[A,B\5,4]) (hyp[A\6]) (hyp[A\5]) (cut[B,C\1,0]) ("∧ intro"[A,B\4,3]) (hyp[A\4]) (hyp[A\3]) (cut[B,C\0,0]) ("→ elim"[A,B\1,0]) (hyp[A\2]) (hyp[A\1]) (hyp[A\0])
+END

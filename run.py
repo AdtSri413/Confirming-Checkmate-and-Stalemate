@@ -694,12 +694,15 @@ def explore_supplied_board(board):
 
   solution = T.solve()
   result = parse_solution(solution)
-  if result[1]:
-    print("This board has the king in check")
   if result[2]:
+    print("This board has the king in check")
     print("Furthermore, the king is also in checkmate!")
-  if result[3]:
+  elif result[1]:
+    print("This board has the king in check")
+  elif result[3]:
     print("This board has the king in stalemate!")
+  else:
+    print("The king is not in check and has an available move")
 
 # This function is super small, because 95% of the constaints a person will change are in place, but commented out
 # within Theory() function. To change what this is counting, please change there, it's much more convenient.
